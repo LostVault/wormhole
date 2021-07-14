@@ -41,6 +41,11 @@ async def on_ready():
 
     # Изменяем статус приложения
     await client.change_presence(status=discord.Status.online, activity=discord.Game('Elite Dangerous'))
+
+    # Отправляем сообщение в общий канал
+    for guild in client.guilds:
+        if channel := discord.utils.get(guild.text_channels, name=config.globalchannel):
+            await channel.send('` ⚠ • ВНИМАНИЕ! ` Приложение запущено.')
 # ------------- ВЫВОДИМ ДАННЫЕ ПРИЛОЖЕНИЯ ПРИ ПОДКЛЮЧЕНИЕ В КОНСОЛЬ // КОНЕЦ
 
 
@@ -168,7 +173,7 @@ async def shutdown(ctx, amount=1):
         await ctx.channel.purge(limit=amount)
     except:
         pass
-    # Отправляем сообщение и удаляем его через 13 секунд
+    # Отправляем сообщение в общий канал
     for guild in client.guilds:
         if channel := discord.utils.get(guild.text_channels, name=config.globalchannel):
             await channel.send('` ⚠ • ВНИМАНИЕ! ` Приложение отключено.')
