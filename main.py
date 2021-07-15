@@ -3,25 +3,22 @@
 # import os
 # import sys
 # import json
-import discord                                      # Импортируем основной модуль
-from discord.ext import commands                    # Импортируем команды из модуля discord.ext
+import discord  # Импортируем основной модуль
+from discord.ext import commands  # Импортируем команды из модуля discord.ext
 from discord.ext.commands import has_permissions
 # import asyncio                                      # Испортируем модуль для работы с асинхронными командами
-import logging                                      # Импортируем моудль логирования
+import logging  # Импортируем моудль логирования
+import aiosqlite
 # import random                                     # Импортируем модуль генерирования случайных чисел
 # import datetime                                   # Импортируем модуль времени
 
-import config                                       # Импортируем настройки приложения
+import config  # Импортируем настройки приложения
 
 # ------------- ИМПОРТ МОДУЛЕЙ // КОНЕЦ
 
-
-blackoverlordlist = [507958146208235530]
-
-
 # Создаём приложение и называем его client
-client = commands.Bot(description="Test bot", command_prefix=commands.when_mentioned_or(config.prefix), help_command=None)
-
+client = commands.Bot(description="Test bot", command_prefix=commands.when_mentioned_or(config.prefix),
+                      help_command=None)
 
 # Выводим данные подключения в консоль
 logging.basicConfig(level=logging.INFO)
@@ -30,6 +27,11 @@ logging.basicConfig(level=logging.INFO)
 # ------------- ВЫВОДИМ ДАННЫЕ ПРИЛОЖЕНИЯ ПРИ ПОДКЛЮЧЕНИЕ В КОНСОЛЬ
 @client.event
 async def on_ready():
+    client.sql_conn = await aiosqlite.connect('Wormhole.sqlite')
+    await client.sql_conn.execute('create table if not exists black_list (userid integer not null, add_timestamp text default '
+                           'current_timestamp, reason text, banner_id integer);')
+
+    # await client.close()
     print('\n-••••••••••••••••••••••••••••••-')
     # Показывает имя приложения указанное на discordapp.com
     print(' APP Name: {0.user} '.format(client))
@@ -43,7 +45,6 @@ async def on_ready():
     for guild in client.guilds:
         print(guild.name)
     print('-••••••••••••••••••••••••••••••-\n')
-
     # Изменяем статус приложения
     await client.change_presence(status=discord.Status.online, activity=discord.Game('Elite Dangerous'))
 
@@ -51,13 +52,14 @@ async def on_ready():
     for guild in client.guilds:
         if channel := discord.utils.get(guild.text_channels, name=config.globalchannel):
             await channel.send('` ⚠ • ВНИМАНИЕ! ` Приложение запущено.')
+
+
 # ------------- ВЫВОДИМ ДАННЫЕ ПРИЛОЖЕНИЯ ПРИ ПОДКЛЮЧЕНИЕ В КОНСОЛЬ // КОНЕЦ
 
 
 # ------------- ВЫВОДИМ СООБЩЕНИЯ ПОЛЬЗОВАТЕЛЕЙ В КОНСОЛЬ ПРИЛОЖЕНИЯ И ПЕРЕНАПРАВЛЯЕМ НА ДРУГИЕ СЕРВЕРА
 @client.event
 async def on_message(message):
-
     # Дублирует сообщения в консоль приложения
     print('Server {0.guild} / Chanel #{0.channel} / {0.author}: {0.content}'.format(message))
 
@@ -77,13 +79,18 @@ async def on_message(message):
     # Игнорируем сообщения с упоминанием
     if message.mentions or message.mention_everyone:
         await message.delete()
-        await channel.send('` ⚠ • ВНИМАНИЕ! ` Сообщения с упоминанием всех активных и неактивных пользователей не пропускаются в общий чат.'.format(message), delete_after=13)
+        await channel.send(
+            '` ⚠ • ВНИМАНИЕ! ` Сообщения с упоминанием всех активных и неактивных пользователей не пропускаются в общий чат.'.format(
+                message), delete_after=13)
         return
 
-    # Игнорируем сообщения отправленные пользователем из списка
-    if message.author.id in blackoverlordlist:
+    # Игнорируем сообщения, отправленные пользователем из чёрного списка
+    if (await (await client.sql_conn.execute(
+            'select count(*) from black_list where userid = ?;', [message.author.id])).fetchone())[0] == 1:
         await message.delete()
-        await channel.send('` ⚠ • ВНИМАНИЕ! ` Пользователи нахоядщиеся в списке **Black Overlord List** не могут отправлять собщения на другие сервера.'.format(message), delete_after=13)
+        await channel.send(
+            '` ⚠ • ВНИМАНИЕ! ` Пользователи нахоядщиеся в списке **Black Overlord List** не могут отправлять собщения на другие сервера.'.format(
+                message), delete_after=13)
         return
 
     # Игнорируем сообщения с символом @
@@ -112,6 +119,7 @@ async def on_message(message):
                 print(f"System: Невозможно отправить сообщение на сервер {guild.name}: Недостаточно прав")
             except discord.HTTPException as e:
                 print(f"System: Невозможно отправить сообщение на сервер {guild.name}: {e}")
+
 # ------------- ВЫВОДИМ СООБЩЕНИЯ ПОЛЬЗОВАТЕЛЕЙ В КОНСОЛЬ ПРИЛОЖЕНИЯ И ПЕРЕНАПРАВЛЯЕМ НА ДРУГИЕ СЕРВЕРА // КОНЕЦ
 
 
@@ -130,10 +138,15 @@ async def on_command_error(ctx, error, amount=1):
         # Удаляем сообщение отправленное пользователем
         await ctx.channel.purge(limit=amount)
         # Создаём сообщение
-        embedcommandMissingPermissions = discord.Embed(title='ВНИМАНИЕ!', description='' + ctx.author.mention + ', к сожалению у вас нету прав на комманду **' + ctx.message.content + '', color=0xd40000)
-        embedcommandMissingPermissions.set_footer(icon_url=ctx.author.avatar_url,text='Vox Galactica // Сообщение удалится через 13 секудн.')
+        embedcommandMissingPermissions = discord.Embed(title='ВНИМАНИЕ!',
+                                                       description='' + ctx.author.mention + ', к сожалению у вас нету прав на комманду **' + ctx.message.content + '',
+                                                       color=0xd40000)
+        embedcommandMissingPermissions.set_footer(icon_url=ctx.author.avatar_url,
+                                                  text='Vox Galactica // Сообщение удалится через 13 секудн.')
         # Отправляем сообщение и удаляем его через 13 секунд
         await ctx.send(embed=embedcommandMissingPermissions, delete_after=13)
+
+
 # ------------- ОБРАБАТЫВАВЕМ ОШБИКИ КОММАНД // КОНЕЦ
 
 
@@ -145,7 +158,9 @@ async def ping(ctx, amount=1):
     # Удаляем сообщение отправленное пользователем
     await ctx.channel.purge(limit=amount)
     # Отправляем сообщение и удаляем его через 13 секунд
-    await ctx.send(f'` **{ctx.author.name}** ` Pong! ({client.latency*1000}ms)', delete_after=13)
+    await ctx.send(f'` **{ctx.author.name}** ` Pong! ({client.latency * 1000}ms)', delete_after=13)
+
+
 # ------------- КОММАНДА ПРОВЕРКА ПРИЛОЖЕНИЯ // КОНЕЦ
 
 
@@ -157,6 +172,7 @@ async def servers(ctx, amount=1):
     activeservers = client.guilds
     for guild in activeservers:
         await ctx.send(guild.name)
+
 # ------------- КОМАНДА ВЫВОДА СПИСКА СЕРВЕРОВ // КОНЕЦ
 
 
@@ -167,6 +183,8 @@ async def servers(ctx, amount=1):
 async def clear(ctx, amount=100):
     # Удаляем сто последних сообщений на канале
     await ctx.channel.purge(limit=amount)
+
+
 # ------------- КОМАНДА УДАЛЕНИЯ СООБЩЕНИЙ НА КАНАЛЕ // КОНЕЦ
 
 
@@ -189,6 +207,22 @@ async def shutdown(ctx, amount=1):
     print(' Goodbye World!')
     print('-••••••••••••••••••••••••••••••-\n')
     quit()
+
+
+@client.command(pass_context=True)
+# @commands.is_owner()
+async def ban(ctx, amount=1):
+    userid_to_ban = ctx.message.content.split(' ')[1]
+    await ctx.message.delete()
+    try:
+        userid_to_ban = int(userid_to_ban)
+    except ValueError:
+        await ctx.channel.send('Для бана необходимо указать ID пользователя')
+        return
+    await client.sql_conn.execute('insert into black_list (userid) values (?);', [userid_to_ban])
+    await client.sql_conn.commit()
+    await ctx.channel.send(f'Пользователь с ID {userid_to_ban} внесён в чёрный список')
+
 # ------------- ОТКЛЮЧЕНИЕ ПРИЛОЖЕНИЯ ПО КОМАНДЕ// КОНЕЦ
 
 
