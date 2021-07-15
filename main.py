@@ -20,7 +20,7 @@ blackoverlordlist = [507958146208235530]
 
 
 # Создаём приложение и называем его client
-client = commands.Bot(description="Test bot", command_prefix=commands.when_mentioned_or(config.prefix), help_command=None)
+client = commands.Bot(description="Test bot", command_prefix=commands.when_mentioned_or(config.prefix), case_insensitive=True, help_command=None)
 
 
 # Выводим данные подключения в консоль
