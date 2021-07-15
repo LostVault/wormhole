@@ -17,8 +17,9 @@ import config  # Импортируем настройки приложения
 # ------------- ИМПОРТ МОДУЛЕЙ // КОНЕЦ
 
 # Создаём приложение и называем его client
-client = commands.Bot(description="Test bot", command_prefix=commands.when_mentioned_or(config.prefix),
-                      help_command=None)
+
+client = commands.Bot(description="Test bot", command_prefix=commands.when_mentioned_or(config.prefix), case_insensitive=True, help_command=None)
+
 
 # Выводим данные подключения в консоль
 logging.basicConfig(level=logging.INFO)
@@ -68,7 +69,11 @@ async def on_message(message):
 
     channel = discord.utils.get(message.guild.text_channels, name=config.globalchannel)
 
-    # Игнорируем сообщения отправленные приложением
+    # Игнорируем сообщения отправленные другими приложениеми
+    if message.author.bot:
+        return
+
+    # Игнорируем сообщения отправленные этим приложением
     if message.author.id == client.user.id:
         return
 
