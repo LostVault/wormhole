@@ -1,5 +1,13 @@
 # Wormhole
 
+## Возможности
+
+* Добавление пользователя в чёрный спиок
+* Система Анти-Флуд
+* Система Анти-Спам
+* * Ограничение на отправку одного сообщения в минуту
 
 
-Пригласить бота на сервер: https://discordapp.com/oauth2/authorize?&client_id=826410895634333718&scope=bot&permissions=0
+## Установка
+
+[Авторизовать](https://discordapp.com/oauth2/authorize?&client_id=826410895634333718&scope=bot&permissions=0) приложение на сервере
