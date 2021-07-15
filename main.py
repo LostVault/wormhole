@@ -121,7 +121,7 @@ async def on_message(message):
             try:
                 # Создаём сообщение
                 emGlobalMessage = discord.Embed(description=f" [{message.author.name}](https://discord.com/users/{message.author.id}) — {message.content}", colour=discord.Colour(16711684))
-                emGlobalMessage.set_footer(icon_url=message.guild.icon_url, text=message.guild.name)
+                emGlobalMessage.set_footer(icon_url=message.guild.icon_url, text=f"Сервер: {message.guild.name} // ID пользователя: {message.author.id}")
                 # Отправляем сообщение
                 await channel.send(embed=emGlobalMessage)
                 # Отправляем сообщение - Обычное
