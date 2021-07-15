@@ -66,7 +66,11 @@ async def on_message(message):
 
     channel = discord.utils.get(message.guild.text_channels, name=config.globalchannel)
 
-    # Игнорируем сообщения отправленные приложением
+    # Игнорируем сообщения отправленные другими приложениеми
+    if message.author.bot:
+        return
+
+    # Игнорируем сообщения отправленные этим приложением
     if message.author.id == client.user.id:
         return
 
