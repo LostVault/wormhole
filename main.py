@@ -1,18 +1,14 @@
 # ------------- ИМПОРТ МОДУЛЕЙ
 
-# import os
-# import sys
-# import json
+import logging  # Импортируем моудль логирования
+
+import aiosqlite
 import discord  # Импортируем основной модуль
 from discord.ext import commands  # Импортируем команды из модуля discord.ext
 from discord.ext.commands import has_permissions
-# import asyncio                                      # Испортируем модуль для работы с асинхронными командами
-import logging  # Импортируем моудль логирования
-import aiosqlite
-# import random                                     # Импортируем модуль генерирования случайных чисел
-# import datetime                                   # Импортируем модуль времени
 
 import config  # Импортируем настройки приложения
+
 
 # ------------- ИМПОРТ МОДУЛЕЙ // КОНЕЦ
 
