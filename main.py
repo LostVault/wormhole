@@ -14,8 +14,7 @@ import config  # Импортируем настройки приложения
 
 # Создаём приложение и называем его client
 
-client = commands.Bot(description="Test bot", command_prefix=commands.when_mentioned_or(config.prefix),
-                      case_insensitive=True, help_command=None)
+client = commands.Bot(description="Test bot", command_prefix=commands.when_mentioned_or(config.prefix), case_insensitive=True, help_command=None)
 
 # Выводим данные подключения в консоль
 logging.basicConfig(level=logging.INFO)
@@ -50,7 +49,14 @@ async def on_ready():
     # Отправляем сообщение в общий канал
     for guild in client.guilds:
         if channel := discord.utils.get(guild.text_channels, name=config.globalchannel):
-            await channel.send('` ⚠ • ВНИМАНИЕ! ` Приложение запущено.')
+            # Создаём сообщение
+            emStatusOn = discord.Embed(title='⚠ • ВНИМАНИЕ!', description='Приложение запущено.', colour=0x90D400)
+            emStatusOn.set_image(
+                url="https://media.discordapp.net/attachments/682731260719661079/682731350922493952/ED1.gif")
+            # Отправляем сообщение
+            await channel.send(embed=emStatusOn)
+            # Отправляем сообщение - Обычное
+            # await channel.send('` ⚠ • ВНИМАНИЕ! ` Приложение запущено.')
 
 
 # ------------- ВЫВОДИМ ДАННЫЕ ПРИЛОЖЕНИЯ ПРИ ПОДКЛЮЧЕНИЕ В КОНСОЛЬ // КОНЕЦ
@@ -88,6 +94,12 @@ async def on_message(message):
                 message), delete_after=13)
         return
 
+    # Игнорируем сообщения с символом @
+    if "@" in message.content:
+        await message.delete()
+        await channel.send('` ⚠ • ВНИМАНИЕ! ` Упс! Что-то пошло не так.'.format(message), delete_after=13)
+        return
+
     # Игнорируем сообщения, отправленные пользователем из чёрного списка
     if (await (await client.sql_conn.execute(
             'select count(*) from black_list where userid = ?;', [message.author.id])).fetchone())[0] == 1:
@@ -96,12 +108,6 @@ async def on_message(message):
             '` ⚠ • ВНИМАНИЕ! ` Пользователи, нахоядщиеся в списке **Black Overlord List**, не могут отправлять '
             'собщения на другие сервера.'.format(
                 message), delete_after=13)
-        return
-
-    # Игнорируем сообщения с символом @
-    if "@" in message.content:
-        await message.delete()
-        await channel.send('` ⚠ • ВНИМАНИЕ! ` Упс! Что-то пошло не так.'.format(message), delete_after=13)
         return
 
     # Удаляем сообщение отправленное пользователем
@@ -114,12 +120,11 @@ async def on_message(message):
         if channel := discord.utils.get(guild.text_channels, name=config.globalchannel):
             try:
                 # Создаём сообщение
-                emGlobalMessage = discord.Embed(description='' + message.author.mention + ' — ' + message.content + '',
-                                                colour=discord.Colour(16711684))
+                emGlobalMessage = discord.Embed(description=f" [{message.author.name}](https://discord.com/users/{message.author.id}) — {message.content}", colour=discord.Colour(16711684))
                 emGlobalMessage.set_footer(icon_url=message.guild.icon_url, text=message.guild.name)
                 # Отправляем сообщение
                 await channel.send(embed=emGlobalMessage)
-                # Отправляем сообщение
+                # Отправляем сообщение - Обычное
                 # await channel.send(' ` {0.guild.name} ` — **` {0.author.name} `**: {0.content}'.format(message))
             except discord.Forbidden:
                 print(f"System: Невозможно отправить сообщение на сервер {guild.name}: Недостаточно прав")
@@ -148,7 +153,8 @@ async def on_command_error(ctx, error, amount=1):
     if isinstance(error, commands.MissingPermissions):
         # Удаляем сообщение отправленное пользователем
         await ctx.channel.purge(limit=amount)
-        # Создаём сообщение
+
+        # Создаём информационное сообщение
         embedcommandMissingPermissions = discord.Embed(title='ВНИМАНИЕ!',
                                                        description='' + ctx.author.mention
                                                                    + ', к сожалению, у вас нет прав на комманду **'
@@ -156,7 +162,7 @@ async def on_command_error(ctx, error, amount=1):
                                                        color=0xd40000)
         embedcommandMissingPermissions.set_footer(icon_url=ctx.author.avatar_url,
                                                   text='Vox Galactica // Сообщение удалится через 13 секудн.')
-        # Отправляем сообщение и удаляем его через 13 секунд
+        # Отправляем информационное сообщение и удаляем его через 13 секунд
         await ctx.send(embed=embedcommandMissingPermissions, delete_after=13)
 
 
@@ -170,8 +176,13 @@ async def on_command_error(ctx, error, amount=1):
 async def ping(ctx, amount=1):
     # Удаляем сообщение отправленное пользователем
     await ctx.channel.purge(limit=amount)
-    # Отправляем сообщение и удаляем его через 13 секунд
-    await ctx.send(f'` **{ctx.author.name}** ` Pong! ({client.latency * 1000}ms)', delete_after=13)
+
+    # Создаём информационное сообщение
+    emPing = discord.Embed(title='⚠ • ВНИМАНИЕ!', description='Получен ответ.', colour=0x90D400)
+    # Отправляем информационное сообщение и удаляем его через 13 секунд
+    await ctx.send(embed=emPing, delete_after=13)
+    # Отправляем сообщение - Обычное
+    # await ctx.send(f'` **{ctx.author.name}** ` Pong! ({client.latency * 1000}ms)', delete_after=13)
 
 
 # ------------- КОММАНДА ПРОВЕРКА ПРИЛОЖЕНИЯ // КОНЕЦ
@@ -202,7 +213,7 @@ async def clear(ctx, amount=100):
 # ------------- КОМАНДА УДАЛЕНИЯ СООБЩЕНИЙ НА КАНАЛЕ // КОНЕЦ
 
 
-# ------------- ОТКЛЮЧЕНИЕ ПРИЛОЖЕНИЯ ПО КОМАНДЕ
+# ------------- КОМАНДА ОТКЛЮЧЕНИЯ ПРИЛОЖЕНИЯ
 @client.command(aliases=['выключить'], brief='Выключение приложения по команде', pass_context=True)
 # Команду может выполнить только владельце приложения
 @commands.is_owner()
@@ -223,6 +234,10 @@ async def shutdown(ctx, amount=1):
     quit()
 
 
+# ------------- КОМАНДА ОТКЛЮЧЕНИЯ ПРИЛОЖЕНИЯ // КОНЕЦ
+
+
+# ------------- КОМАНДА ВНЕСЕНИЯ ПОЛЬЗОВАТЕЛЯ В ЧЁРНЫЙ СПИСОК
 @client.command(pass_context=True)
 @commands.is_owner()
 async def ban(ctx, amount=1):
@@ -235,10 +250,20 @@ async def ban(ctx, amount=1):
         return
     await client.sql_conn.execute('insert into black_list (userid) values (?);', [userid_to_ban])
     await client.sql_conn.commit()
-    await ctx.channel.send(f'Пользователь с ID {userid_to_ban} внесён в чёрный список')
+
+    # Создаём информационное сообщение
+    emBlackListAdd = discord.Embed(title='⚠ • ВНИМАНИЕ!', description='Пользователь с ID '+ userid_to_ban +' внесён в чёрный список.', color=0xd40000)
+    # Отправляем информационное сообщение и удаляем его через 13 секунд
+    await ctx.send(embed=emBlackListAdd, delete_after=13)
+    # Отправляем сообщение - Обычное
+    # await ctx.channel.send(f'` ⚠ • ВНИМАНИЕ! ` Пользователь с ID {userid_to_ban} внесён в чёрный список.')
 
 
-# ------------- ОТКЛЮЧЕНИЕ ПРИЛОЖЕНИЯ ПО КОМАНДЕ// КОНЕЦ
+# ------------- КОМАНДА ВНЕСЕНИЯ ПОЛЬЗОВАТЕЛЯ В ЧЁРНЫЙ СПИСОК // КОНЕЦ
+
+
+# ------------- КОМАНДА ВЫНЕСЕНИЯ ПОЛЬЗОВАТЕЛЯ ИЗ ЧЁРНОГО СПИСКА
+# ------------- КОМАНДА ВЫНЕСЕНИЯ ПОЛЬЗОВАТЕЛЯ ИЗ ЧЁРНОГО СПИСКА // КОНЕЦ
 
 
 # ------------- КОМАНДА ОТОБРАЖЕНИЯ ИФОРМАЦИИ О ПРИЛОЖЕНИЕ
@@ -249,6 +274,7 @@ async def information(ctx, amount=1):
     # Удаляем сообщение отправленное пользователем
     await ctx.channel.purge(limit=amount)
     for guild in client.guilds:
+
         # Создаём сообщение
         emInformation = discord.Embed(title='Информация',
                                       description='Приложение создано для передачи текстовых сообщений между '
@@ -258,7 +284,7 @@ async def information(ctx, amount=1):
         emInformation.add_field(name='Благодарности', value='• <@478527700710195203>')
         emInformation.add_field(name='Список серверов', value='' + guild.name + '')
         emInformation.set_footer(text=' ' + client.user.name + ' ')
-        # Отправляем сообщение и удаляем его через 13 секунд
+        # Отправляем сообщение и удаляем его через 60 секунд
         await ctx.send(embed=emInformation, delete_after=60)
 
 
