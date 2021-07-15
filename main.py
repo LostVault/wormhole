@@ -12,9 +12,11 @@ import logging                                      # Импортируем м�
 # import datetime                                   # Импортируем модуль времени
 
 import config                                       # Импортируем настройки приложения
+
 # ------------- ИМПОРТ МОДУЛЕЙ // КОНЕЦ
 
-blackoverlordlist = ["665018860587450388", "777300091621998632"]
+
+blackoverlordlist = [507958146208235530]
 
 
 # Создаём приложение и называем его client
@@ -53,13 +55,17 @@ async def on_ready():
 @client.event
 async def on_message(message):
 
-    # Пропускает комманды для регистрации
-    await client.process_commands(message)
-
     # Дублирует сообщения в консоль приложения
     print('Chanel #{0.channel} / {0.author}: {0.content}'.format(message))
 
+    # Пропускает комманды для регистрации
+    await client.process_commands(message)
+
     channel = discord.utils.get(message.guild.text_channels, name=config.globalchannel)
+
+    # Игнорируем сообщения отправленные приложением
+    if message.author.id == client.user.id:
+        return
 
     # Игнорируем сообщения отправленные на других каналах
     if message.channel.id != channel.id:
@@ -67,22 +73,15 @@ async def on_message(message):
 
     # Игнорируем сообщения с упоминанием
     if message.mentions or message.mention_everyone:
-        # --
-        try:
-            await message.delete()
-        except:
-            pass
-        # --
+        await message.delete()
         await channel.send('` ⚠ • ВНИМАНИЕ! ` Сообщения с упоминанием всех активных и неактивных пользователей не пропускаются в общий чат.'.format(message), delete_after=13)
         return
 
-    # Игнорируем сообщения отправленные приложением
-    if message.author.id == client.user.id:
+    # Игнорируем сообщения отправленные пользователем из списка
+    if message.author.id in blackoverlordlist:
+        await message.delete()
+        await channel.send('` ⚠ • ВНИМАНИЕ! ` Пользователи нахоядщиеся в списке **Black Overlord List** не могут отправлять собщения на другие сервера.'.format(message), delete_after=13)
         return
-
-    #    if message.author.id == blackoverlordlist:
-    #        await channel.send('` ⚠ • ВНИМАНИЕ! ` Пользователи нахоядщиеся в списке Black Overlord List не могут отправлять собщения на другие сервера.'.format(message), delete_after=13)
-    #        return
 
         # Игнорируем сообщения с символом @
     if "@" in message.content:
@@ -176,7 +175,7 @@ async def shutdown(ctx, amount=1):
     # Отправляем сообщение в общий канал
     for guild in client.guilds:
         if channel := discord.utils.get(guild.text_channels, name=config.globalchannel):
-            await channel.send('` ⚠ • ВНИМАНИЕ! ` Приложение отключено.')
+            await channel.send('` ⚠ • ВНИМАНИЕ! ` Приложение остановлено.')
     # Отключаем приложение
     print('\n-••••••••••••••••••••••••••••••-')
     print(' Goodbye World!')
