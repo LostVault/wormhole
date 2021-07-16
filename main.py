@@ -269,23 +269,21 @@ async def ban(ctx, amount=1):
 # ------------- КОМАНДА ОТОБРАЖЕНИЯ ИФОРМАЦИИ О ПРИЛОЖЕНИЕ
 @client.command(aliases=['информация', 'инфо', 'авторы'], brief='Проверка состояния приложения', pass_context=True)
 # Команду может выполнить только владельце приложения
-@commands.is_owner()
 async def information(ctx, amount=1):
     # Удаляем сообщение отправленное пользователем
     await ctx.channel.purge(limit=amount)
-    for guild in client.guilds:
-
-        # Создаём сообщение
-        emInformation = discord.Embed(title='Информация',
-                                      description='Приложение создано для передачи текстовых сообщений между '
-                                                  'серверами, связанных с игрой *Elite Dangerous*.',
-                                      colour=discord.Colour(16711684))
-        emInformation.add_field(name='Разработчики ', value='• <@420130693696323585>\n• <@665018860587450388>')
-        emInformation.add_field(name='Благодарности', value='• <@478527700710195203>')
-        emInformation.add_field(name='Список серверов', value='' + guild.name + '')
-        emInformation.set_footer(text=' ' + client.user.name + ' ')
-        # Отправляем сообщение и удаляем его через 60 секунд
-        await ctx.send(embed=emInformation, delete_after=60)
+    print("".join(guild.name + '\n' for guild in client.guilds))
+    # Создаём сообщение
+    emInformation = discord.Embed(title='Информация',
+                                  description='Приложение создано для передачи текстовых сообщений между '
+                                              'серверами, связанных с игрой *Elite Dangerous*.',
+                                  colour=discord.Colour(16711684))
+    emInformation.add_field(name='Разработчики ', value='• <@420130693696323585>\n• <@665018860587450388>')
+    emInformation.add_field(name='Благодарности', value='• <@478527700710195203>')
+    emInformation.add_field(name='Список серверов', value="".join(guild.name + '\n' for guild in client.guilds))
+    emInformation.set_footer(text=' ' + client.user.name + ' ')
+    # Отправляем сообщение и удаляем его через 60 секунд
+    await ctx.send(embed=emInformation, delete_after=60)
 
 
 # ------------- КОМАНДА ОТОБРАЖЕНИЯ ИФОРМАЦИИ О ПРИЛОЖЕНИЕ // КОНЕЦ
