@@ -71,6 +71,10 @@ async def on_message(message):
     # Пропускает комманды для регистрации
     await client.process_commands(message)
 
+    # Игнорируем сообщения начинающиеся с преффикса комманд
+    if message.content.startswith(config.prefix):
+        return
+
     channel = discord.utils.get(message.guild.text_channels, name=config.globalchannel)
 
     # Игнорируем сообщения отправленные другими приложениеми
