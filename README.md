@@ -25,4 +25,6 @@
 
 ## Установка
 
+
+[Создать](https://discord.com/developers/applications) приложение
 [Авторизовать](https://discordapp.com/oauth2/authorize?&client_id=826410895634333718&scope=bot&permissions=0) приложение на сервере
