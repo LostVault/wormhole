@@ -265,7 +265,6 @@ async def add(ctx, amount=1):
 # ------------- КОМАНДА ВЫВОДА СПИСКА СЕРВЕРОВ
 @client.command(aliases=['сервера'], brief='Проверка состояния приложения', pass_context=True)
 # Команду может выполнить только владельце приложения
-@commands.is_owner()
 async def servers(ctx, amount=1):
     # Удаляем сообщение отправленное пользователем
     await ctx.channel.purge(limit=amount)
