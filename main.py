@@ -49,14 +49,19 @@ async def on_ready():
     # Отправляем сообщение в общий канал
     for guild in client.guilds:
         if channel := discord.utils.get(guild.text_channels, name=config.globalchannel):
-            # Создаём сообщение
-            emStatusOn = discord.Embed(title='⚠ • ВНИМАНИЕ!', description='Приложение запущено.', colour=0x90D400)
-            emStatusOn.set_image(
-                url="https://media.discordapp.net/attachments/682731260719661079/682731350922493952/ED1.gif")
-            # Отправляем сообщение
-            await channel.send(embed=emStatusOn)
-            # Отправляем сообщение - Обычное
-            # await channel.send('` ⚠ • ВНИМАНИЕ! ` Приложение запущено.')
+            try:
+                # Создаём сообщение
+                emStatusOn = discord.Embed(title='⚠ • ВНИМАНИЕ!', description='Приложение запущено.', colour=0x90D400)
+                emStatusOn.set_image(
+                    url="https://media.discordapp.net/attachments/682731260719661079/682731350922493952/ED1.gif")
+                # Отправляем сообщение
+                await channel.send(embed=emStatusOn)
+                # Отправляем сообщение - Обычное
+                # await channel.send('` ⚠ • ВНИМАНИЕ! ` Приложение запущено.')
+            except discord.Forbidden:
+                print(f"System: Невозможно отправить сообщение на сервер {guild.name}: Недостаточно прав")
+            except discord.HTTPException as e:
+                print(f"System: Невозможно отправить сообщение на сервер {guild.name}: {e}")
 
 
 # ------------- ВЫВОДИМ ДАННЫЕ ПРИЛОЖЕНИЯ ПРИ ПОДКЛЮЧЕНИЕ В КОНСОЛЬ // КОНЕЦ
@@ -192,19 +197,6 @@ async def ping(ctx, amount=1):
 # ------------- КОММАНДА ПРОВЕРКА ПРИЛОЖЕНИЯ // КОНЕЦ
 
 
-# ------------- КОМАНДА ВЫВОДА СПИСКА СЕРВЕРОВ
-@client.command(aliases=['сервера'], brief='Проверка состояния приложения', pass_context=True)
-# Команду может выполнить только владельце приложения
-@commands.is_owner()
-async def servers(ctx, amount=1):
-    activeservers = client.guilds
-    for guild in activeservers:
-        await ctx.send(guild.name)
-
-
-# ------------- КОМАНДА ВЫВОДА СПИСКА СЕРВЕРОВ // КОНЕЦ
-
-
 # ------------- КОМАНДА УДАЛЕНИЯ СООБЩЕНИЙ НА КАНАЛЕ
 @client.command(aliases=['очистить'], brief='Удаление ста последних сообщений на канале', pass_context=True)
 # Разрешаем выполнение команды только пользователям с ролью администратор
@@ -242,9 +234,9 @@ async def shutdown(ctx, amount=1):
 
 
 # ------------- КОМАНДА ВНЕСЕНИЯ ПОЛЬЗОВАТЕЛЯ В ЧЁРНЫЙ СПИСОК
-@client.command(pass_context=True)
+@client.command(aliases=['добавить'], brief='Добавить пользователя в чёрный список.', pass_context=True)
 @commands.is_owner()
-async def ban(ctx, amount=1):
+async def add(ctx, amount=1):
     userid_to_ban = ctx.message.content.split(' ')[1]
     await ctx.message.delete()
     try:
@@ -268,6 +260,25 @@ async def ban(ctx, amount=1):
 
 # ------------- КОМАНДА ВЫНЕСЕНИЯ ПОЛЬЗОВАТЕЛЯ ИЗ ЧЁРНОГО СПИСКА
 # ------------- КОМАНДА ВЫНЕСЕНИЯ ПОЛЬЗОВАТЕЛЯ ИЗ ЧЁРНОГО СПИСКА // КОНЕЦ
+
+
+# ------------- КОМАНДА ВЫВОДА СПИСКА СЕРВЕРОВ
+@client.command(aliases=['сервера'], brief='Проверка состояния приложения', pass_context=True)
+# Команду может выполнить только владельце приложения
+@commands.is_owner()
+async def servers(ctx, amount=1):
+    # Удаляем сообщение отправленное пользователем
+    await ctx.channel.purge(limit=amount)
+    print("".join(guild.name + '\n' for guild in client.guilds))
+    # Создаём сообщение
+    emServers = discord.Embed(title='Сервера', description='Список серверов к которому подключено приложение.', colour=discord.Colour(16711684))
+    emServers.add_field(name='Список серверов', value="".join(guild.name + '\n' for guild in client.guilds))
+    emServers.set_footer(text=' ' + client.user.name + ' ')
+    # Отправляем сообщение и удаляем его через 60 секунд
+    await ctx.send(embed=emServers, delete_after=60)
+
+
+# ------------- КОМАНДА ВЫВОДА СПИСКА СЕРВЕРОВ // КОНЕЦ
 
 
 # ------------- КОМАНДА ОТОБРАЖЕНИЯ ИФОРМАЦИИ О ПРИЛОЖЕНИЕ
