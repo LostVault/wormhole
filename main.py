@@ -80,7 +80,7 @@ async def on_message(message):
     if message.content.startswith(config.prefix):
         return
 
-    channel = discord.utils.get(message.guild.text_channels, name=config.globalchannel)
+    # channel = discord.utils.get(message.guild.text_channels, name=config.globalchannel)
 
     # Игнорируем сообщения отправленные другими приложениеми
     if message.author.bot:
@@ -90,14 +90,14 @@ async def on_message(message):
     if message.author.id == client.user.id:
         return
 
-    # Игнорируем сообщения отправленные на других каналах
-    if message.channel.id != channel.id:
+    # Игнорируем сообщения, отправленные не в забриджованный канал
+    if message.channel.name != config.globalchannel:
         return
 
     # Игнорируем сообщения с упоминанием
     if message.mentions or message.mention_everyone:
         await message.delete()
-        await channel.send(
+        await message.channel.send(
             '` ⚠ • ВНИМАНИЕ! ` Сообщения, с упоминанием всех активных и неактивных пользователей, не пропускаются в '
             'общий чат.'.format(
                 message), delete_after=13)
@@ -106,14 +106,14 @@ async def on_message(message):
     # Игнорируем сообщения с символом @
     if "@" in message.content:
         await message.delete()
-        await channel.send('` ⚠ • ВНИМАНИЕ! ` Упс! Что-то пошло не так.'.format(message), delete_after=13)
+        await message.channel.send('` ⚠ • ВНИМАНИЕ! ` Упс! Что-то пошло не так.'.format(message), delete_after=13)
         return
 
     # Игнорируем сообщения, отправленные пользователем из чёрного списка
     if (await (await client.sql_conn.execute(
             'select count(*) from black_list where userid = ?;', [message.author.id])).fetchone())[0] == 1:
         await message.delete()
-        await channel.send(
+        await message.channel.send(
             '` ⚠ • ВНИМАНИЕ! ` Пользователи, нахоядщиеся в списке **Black Overlord List**, не могут отправлять '
             'собщения на другие сервера.'.format(
                 message), delete_after=13)
