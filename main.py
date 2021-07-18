@@ -248,7 +248,8 @@ async def add(ctx, amount=1):
     await client.sql_conn.commit()
 
     # Создаём информационное сообщение
-    emBlackListAdd = discord.Embed(title='⚠ • ВНИМАНИЕ!', description='Пользователь с ID '+ userid_to_ban +' внесён в чёрный список.', color=0xd40000)
+    emBlackListAdd = discord.Embed(title='⚠ • ВНИМАНИЕ!', description='Пользователь с ID ' + str(userid_to_ban) +
+                                                                      ' внесён в чёрный список.', color=0xd40000)
     # Отправляем информационное сообщение и удаляем его через 13 секунд
     await ctx.send(embed=emBlackListAdd, delete_after=13)
     # Отправляем сообщение - Обычное
