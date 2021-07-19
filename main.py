@@ -55,9 +55,11 @@ async def on_ready():
 
     print('\n-••••••••••••••••••••••••••••••-')
     # Показывает имя приложения указанное на discordapp.com
-    print(' APP Name: {0.user} '.format(client))
+    print(f' APP Username: {client.user} ')
+    print(f' Using token {config.token[0:2]}...{config.token[-3:-1]}')
+    print(f' Using global channel {config.globalchannel}')
     # Показывает ID приложения указанное на discordapp.com
-    print(' Client ID: {0.user.id} '.format(client))
+    print(' APP Client ID: {0.user.id} '.format(client))
     print(
         ' Link for connection: https://discordapp.com/oauth2/authorize?&client_id={0.user.id}&scope'
         '=bot&permissions=0'.format(

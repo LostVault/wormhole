@@ -1,18 +1,16 @@
 ## ОСНОВНЫЕ
+from os import environ
 
 # Токен для авторизации приложения:
-token = 'ODI2NDEwODk1NjM0MzMzNzE4.YGMFHw.aIamZ2OGVVD0td7uPVOEue13Sns'
 
 # Токен для авторизации тестового приложения:
-# token = 'ODY0ODQ1NTIxNzA5NTYzOTE1.YO7YKA.QugT2vy9wV0-oX6FWX3vsHc6IC8'
-
-# Преффикс комманд:
-prefix = '!'
+token = environ['WORMHOLE_TOKEN_0']
 
 # Название глобального канал:
-globalchannel = 'grid'
-
-# Название глобального тестового канал:
-# globalchannel = 'ctd'
+globalchannel = environ['WORMHOLE_GLOBALCHANNEL']
+# os.environ will raise a KeyError exception if there is
+# no variable with such name in environment, so no checks required
+# Преффикс комманд:
+prefix = '!'
 
 ## ОСНОВЫНЕ // КОНЕЦ
