@@ -146,6 +146,11 @@ async def on_message(message):
         colour=0x33248e)
     emGlobalMessage.set_footer(icon_url=message.guild.icon_url,
                                text=f"Сервер: {message.guild.name} // ID пользователя: {message.author.id}")
+
+    for attachment in message.attachments:
+        if attachment.filename.endswith(('bmp', 'jpeg', 'jpg', 'png', 'gif')):
+            emGlobalMessage.set_image(url=attachment.url)
+
     # Отправляем сообщение
     await send_to_servers(embed=emGlobalMessage)
 
