@@ -11,15 +11,20 @@ import config  # Импортируем настройки приложения
 
 # ------------- ИМПОРТ МОДУЛЕЙ // КОНЕЦ
 
-# Создаём приложение и называем его client
 
+# ------------- СОЗДАЁМ ПРИЛОЖЕНИЕ И НАЗЫВАЕМ ЕГО CLIENT
 client = commands.Bot(description="Test bot", command_prefix=commands.when_mentioned_or(config.prefix),
                       case_insensitive=True, help_command=None)
 
-# Выводим данные подключения в консоль
+
+# ------------- ВЫВОДИМ ДАННЫЕ ПРДКЛЮЧЕНИЯ ПРИЛОЖЕНИЯ В КОНСОЛЬ
 logging.basicConfig(level=logging.INFO)
 
 
+# ------------- ВЫВОДИМ ДАННЫЕ ПРДКЛЮЧЕНИЯ ПРИЛОЖЕНИЯ В КОНСОЛЬ // КОНЕЦ
+
+
+# ------------- БЫСТЫРЫЙ СКРИПТ НА ОТПРАВКУ СООБЩЕНИЙ
 async def send_to_servers(*args, **kwargs):
     """
 
@@ -36,6 +41,9 @@ async def send_to_servers(*args, **kwargs):
                 print(f"System: Невозможно отправить сообщение на сервер {guild.name}: Недостаточно прав")
             except discord.HTTPException as e:
                 print(f"System: Невозможно отправить сообщение на сервер {guild.name}: {e}")
+
+
+# ------------- БЫСТЫРЫЙ СКРИПТ НА ОТПРАВКУ СООБЩЕНИЙ // КОНЕЦ
 
 
 # ------------- ВЫВОДИМ ДАННЫЕ ПРИЛОЖЕНИЯ ПРИ ПОДКЛЮЧЕНИЕ В КОНСОЛЬ
@@ -201,7 +209,7 @@ async def ping(ctx, amount=1):
 
 # ------------- КОМАНДА УДАЛЕНИЯ СООБЩЕНИЙ НА КАНАЛЕ
 @client.command(aliases=['очистить'], brief='Удаление ста последних сообщений на канале', pass_context=True)
-# Разрешаем выполнение команды только пользователям с ролью администратор
+# Команду может выполнить только пользователяь с ролью администратор
 @has_permissions(administrator=True)
 async def clear(ctx, amount=100):
     # Удаляем сто последних сообщений на канале
@@ -237,6 +245,7 @@ async def shutdown(ctx, amount=1):
 
 # ------------- КОМАНДА ВНЕСЕНИЯ ПОЛЬЗОВАТЕЛЯ В ЧЁРНЫЙ СПИСОК
 @client.command(aliases=['добавить'], brief='Добавить пользователя в чёрный список.', pass_context=True)
+# Команду может выполнить только владельце приложения
 @commands.is_owner()
 async def add(ctx, amount=1):
     userid_to_ban = ctx.message.content.split(' ')[1]
@@ -267,6 +276,8 @@ async def add(ctx, amount=1):
 
 # ------------- КОМАНДА ВЫВОДА СПИСКА СЕРВЕРОВ
 @client.command(aliases=['сервера'], brief='Проверка состояния приложения', pass_context=True)
+# Команду может выполнить только владельце приложения
+# @commands.is_owner()
 async def servers(ctx, amount=1):
     # Удаляем сообщение отправленное пользователем
     await ctx.channel.purge(limit=amount)
@@ -307,8 +318,12 @@ async def information(ctx, amount=1):
 
 
 # ------------- КОМАНДА ОТОБРАЖЕНИЯ ИФОРМАЦИИ О ПРИЛОЖЕНИЕ // КОНЕЦ
+
+
+# ------------- КОМАНДА ОТКЛЮЧЕНИЯ ПРИЛОЖЕНИЯ ОТ СЕРВЕРА
 @client.command(pass_context=True)
-@commands.is_owner()
+# Команду может выполнить только владельце приложения
+# @commands.is_owner()
 async def leave_server(ctx, id_to_kick: int):
     if guild_to_leave := client.get_guild(id_to_kick) is None:
         await ctx.send('No guild with such ID')
@@ -316,6 +331,26 @@ async def leave_server(ctx, id_to_kick: int):
     await guild_to_leave.leave()
 
 
+# ------------- КОМАНДА ОТКЛЮЧЕНИЯ ПРИЛОЖЕНИЯ ОТ СЕРВЕРА // КОНЕЦ
+
+
+# ------------- КОМАНДА СОЗДАНИЯ КАНАЛА ДЛЯ ПРИЁМА И ОТПРАВКИ СООБЩЕНИЙ
+@client.command(aliases=['установка', 'подключить'], brief='Создание канала для приёма и передачи сообщений', pass_context=True)
+# Команду может выполнить только пользователяь с ролью администратор
+@has_permissions(administrator=True)
+async def install(ctx, amount=1):
+    # Удаляем сообщение отправленное пользователем
+    await ctx.channel.purge(limit=amount)
+    # Создаём канал
+    guild = ctx.message.guild
+    await guild.create_text_channel('test')
+
+# ------------- КОМАНДА СОЗДАНИЯ КАНАЛА ДЛЯ ПРИЁМА И ОТПРАВКИ СООБЩЕНИЙ // КОНЕЦ
+
+
 # Генирируемый токен при создание приложения на discordapp.com необходимый для подключенияю к серверу. //
 # Прописывается в config.py
 client.run(config.token)
+
+
+# ------------- СОЗДАЁМ ПРИЛОЖЕНИЕ И НАЗЫВАЕМ ЕГО CLIENT  // КОНЕЦ
