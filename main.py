@@ -9,7 +9,6 @@ from discord.ext.commands import has_permissions
 
 import config  # Импортируем настройки приложения
 
-
 # ------------- ИМПОРТ МОДУЛЕЙ // КОНЕЦ
 
 # Создаём приложение и называем его client
@@ -19,6 +18,24 @@ client = commands.Bot(description="Test bot", command_prefix=commands.when_menti
 
 # Выводим данные подключения в консоль
 logging.basicConfig(level=logging.INFO)
+
+
+async def send_to_servers(*args, **kwargs):
+    """
+
+    :param args:
+    :param kwargs:
+    :return:
+    send message to all connected servers to config.globalchannel channel, arguments as for channel.send()
+    """
+    for guild in client.guilds:
+        if channel := discord.utils.get(guild.text_channels, name=config.globalchannel):
+            try:
+                await channel.send(*args, **kwargs)
+            except discord.Forbidden:
+                print(f"System: Невозможно отправить сообщение на сервер {guild.name}: Недостаточно прав")
+            except discord.HTTPException as e:
+                print(f"System: Невозможно отправить сообщение на сервер {guild.name}: {e}")
 
 
 # ------------- ВЫВОДИМ ДАННЫЕ ПРИЛОЖЕНИЯ ПРИ ПОДКЛЮЧЕНИЕ В КОНСОЛЬ
@@ -37,9 +54,8 @@ async def on_ready():
         ' Link for connection: https://discordapp.com/oauth2/authorize?&client_id={0.user.id}&scope'
         '=bot&permissions=0'.format(
             client))
-    print(' Hello world!')
     print('-••••••••••••••••••••••••••••••-')
-    # Выводит список приложений к которым подключео приложение
+    # Выводит список серверов, к которым подключено приложение
     print('Servers connected to:')
     for guild in client.guilds:
         print(guild.name)
@@ -48,21 +64,11 @@ async def on_ready():
     await client.change_presence(status=discord.Status.online, activity=discord.Game('Elite Dangerous'))
 
     # Отправляем сообщение в общий канал
-    for guild in client.guilds:
-        if channel := discord.utils.get(guild.text_channels, name=config.globalchannel):
-            try:
-                # Создаём сообщение
-                emStatusOn = discord.Embed(title='⚠ • ВНИМАНИЕ!', description='Приложение запущено.', colour=0x90D400)
-                emStatusOn.set_image(
-                    url="https://media.discordapp.net/attachments/682731260719661079/682731350922493952/ED1.gif")
-                # Отправляем сообщение
-                await channel.send(embed=emStatusOn)
-                # Отправляем сообщение - Обычное
-                # await channel.send('` ⚠ • ВНИМАНИЕ! ` Приложение запущено.')
-            except discord.Forbidden:
-                print(f"System: Невозможно отправить сообщение на сервер {guild.name}: Недостаточно прав")
-            except discord.HTTPException as e:
-                print(f"System: Невозможно отправить сообщение на сервер {guild.name}: {e}")
+    emStatusOn = discord.Embed(title='⚠ • ВНИМАНИЕ!', description='Приложение запущено.', colour=0x90D400)
+    emStatusOn.set_image(
+        url="https://media.discordapp.net/attachments/682731260719661079/682731350922493952/ED1.gif")
+    await send_to_servers(embed=emStatusOn)
+    # Отправляем сообщение
 
 
 # ------------- ВЫВОДИМ ДАННЫЕ ПРИЛОЖЕНИЯ ПРИ ПОДКЛЮЧЕНИЕ В КОНСОЛЬ // КОНЕЦ
@@ -72,7 +78,7 @@ async def on_ready():
 @client.event
 async def on_message(message):
     # Дублирует сообщения в консоль приложения
-    print('Server {0.guild} / Chanel #{0.channel} / {0.author}: {0.content}'.format(message))
+    print('Server {0.guild} / Channel #{0.channel} / {0.author}: {0.content}'.format(message))
 
     # Пропускает комманды для регистрации
     await client.process_commands(message)
@@ -118,32 +124,26 @@ async def on_message(message):
                 message), delete_after=13)
         return
 
-    # Удаляем сообщение отправленное пользователем
+    # Удаляем сообщение, отправленное пользователем
     try:
         await message.delete()
     except Exception:
         pass
 
-    for guild in client.guilds:
-        if channel := discord.utils.get(guild.text_channels, name=config.globalchannel):
-            try:
-                # Создаём сообщение
-                emGlobalMessage = discord.Embed(description=f" [{message.author.name}](https://discord.com/users/{message.author.id}) — {message.content}", colour=0x33248e)
-                emGlobalMessage.set_footer(icon_url=message.guild.icon_url, text=f"Сервер: {message.guild.name} // ID пользователя: {message.author.id}")
-                # Отправляем сообщение
-                await channel.send(embed=emGlobalMessage)
-                # Отправляем сообщение - Обычное
-                # await channel.send(' ` {0.guild.name} ` — **` {0.author.name} `**: {0.content}'.format(message))
-            except discord.Forbidden:
-                print(f"System: Невозможно отправить сообщение на сервер {guild.name}: Недостаточно прав")
-            except discord.HTTPException as e:
-                print(f"System: Невозможно отправить сообщение на сервер {guild.name}: {e}")
+    # Создаём сообщение
+    emGlobalMessage = discord.Embed(
+        description=f" [{message.author.name}](https://discord.com/users/{message.author.id}) — {message.content}",
+        colour=0x33248e)
+    emGlobalMessage.set_footer(icon_url=message.guild.icon_url,
+                               text=f"Сервер: {message.guild.name} // ID пользователя: {message.author.id}")
+    # Отправляем сообщение
+    await send_to_servers(embed=emGlobalMessage)
 
 
 # ------------- ВЫВОДИМ СООБЩЕНИЯ ПОЛЬЗОВАТЕЛЕЙ В КОНСОЛЬ ПРИЛОЖЕНИЯ И ПЕРЕНАПРАВЛЯЕМ НА ДРУГИЕ СЕРВЕРА // КОНЕЦ
 
 
-# ------------- ОБРАБАТЫВАВЕМ ОШБИКИ КОММАНД
+# ------------- ОБРАБАТЫВАВЕМ ОШИБКИ КОММАНД
 @client.event
 async def on_command_error(ctx, error, amount=1):
     if isinstance(error, commands.CommandNotFound):
@@ -175,6 +175,7 @@ async def on_command_error(ctx, error, amount=1):
         await ctx.send(embed=embedcommandMissingPermissions, delete_after=13)
         return
     print(ctx.message.content, error)
+
 
 # ------------- ОБРАБАТЫВАВЕМ ОШБИКИ КОММАНД // КОНЕЦ
 
@@ -313,6 +314,7 @@ async def leave_server(ctx, id_to_kick: int):
         await ctx.send('No guild with such ID')
         return
     await guild_to_leave.leave()
+
 
 # Генирируемый токен при создание приложения на discordapp.com необходимый для подключенияю к серверу. //
 # Прописывается в config.py
