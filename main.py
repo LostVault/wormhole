@@ -323,7 +323,7 @@ async def information(ctx, amount=1):
 # ------------- КОМАНДА ОТКЛЮЧЕНИЯ ПРИЛОЖЕНИЯ ОТ СЕРВЕРА
 @client.command(pass_context=True)
 # Команду может выполнить только владельце приложения
-# @commands.is_owner()
+@commands.is_owner()
 async def leave_server(ctx, id_to_kick: int):
     if guild_to_leave := client.get_guild(id_to_kick) is None:
         await ctx.send('No guild with such ID')
@@ -343,7 +343,7 @@ async def install(ctx, amount=1):
     await ctx.channel.purge(limit=amount)
     # Создаём канал
     guild = ctx.message.guild
-    await guild.create_text_channel('test')
+    await guild.create_text_channel('wormhole')
 
 # ------------- КОМАНДА СОЗДАНИЯ КАНАЛА ДЛЯ ПРИЁМА И ОТПРАВКИ СООБЩЕНИЙ // КОНЕЦ
 
