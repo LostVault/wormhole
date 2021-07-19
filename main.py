@@ -14,7 +14,8 @@ import config  # Импортируем настройки приложения
 
 # Создаём приложение и называем его client
 
-client = commands.Bot(description="Test bot", command_prefix=commands.when_mentioned_or(config.prefix), case_insensitive=True, help_command=None)
+client = commands.Bot(description="Test bot", command_prefix=commands.when_mentioned_or(config.prefix),
+                      case_insensitive=True, help_command=None)
 
 # Выводим данные подключения в консоль
 logging.basicConfig(level=logging.INFO)
@@ -77,10 +78,8 @@ async def on_message(message):
     await client.process_commands(message)
 
     # Игнорируем сообщения начинающиеся с преффикса комманд
-    if message.content.startswith(config.prefix):
+    if message.content.startswith(config.prefix) or client.user.mentioned_in(message):
         return
-
-    # channel = discord.utils.get(message.guild.text_channels, name=config.globalchannel)
 
     # Игнорируем сообщения отправленные другими приложениеми
     if message.author.bot:
@@ -159,6 +158,7 @@ async def on_command_error(ctx, error, amount=1):
                                         text='Vox Galactica // Сообщение удалится через 13 секудн.')
         # Отправляем сообщение и удаляем его через 13 секунд
         await ctx.send(embed=embedcommandnotfound, delete_after=13)
+        return
     if isinstance(error, commands.MissingPermissions):
         # Удаляем сообщение отправленное пользователем
         await ctx.channel.purge(limit=amount)
@@ -173,7 +173,8 @@ async def on_command_error(ctx, error, amount=1):
                                                   text='Vox Galactica // Сообщение удалится через 13 секудн.')
         # Отправляем информационное сообщение и удаляем его через 13 секунд
         await ctx.send(embed=embedcommandMissingPermissions, delete_after=13)
-
+        return
+    print(ctx.message.content, error)
 
 # ------------- ОБРАБАТЫВАВЕМ ОШБИКИ КОММАНД // КОНЕЦ
 
@@ -265,14 +266,18 @@ async def add(ctx, amount=1):
 
 # ------------- КОМАНДА ВЫВОДА СПИСКА СЕРВЕРОВ
 @client.command(aliases=['сервера'], brief='Проверка состояния приложения', pass_context=True)
-# Команду может выполнить только владельце приложения
 async def servers(ctx, amount=1):
     # Удаляем сообщение отправленное пользователем
     await ctx.channel.purge(limit=amount)
     print("".join(guild.name + '\n' for guild in client.guilds))
     # Создаём сообщение
-    emServers = discord.Embed(title='Сервера', description='Список серверов к которому подключено приложение.', colour=discord.Colour(16711684))
-    emServers.add_field(name='Список серверов', value="".join(guild.name + '\n' for guild in client.guilds))
+    emServers = discord.Embed(title='Сервера',
+                              description='Список серверов, к которым подключено приложение.',
+                              colour=discord.Colour(16711684))
+
+    emServers.add_field(
+        name='Список серверов',
+        value="".join(guild.name + f' (ID:{guild.id})\n' for guild in client.guilds))
     emServers.set_footer(text=' ' + client.user.name + ' ')
     # Отправляем сообщение и удаляем его через 60 секунд
     await ctx.send(embed=emServers, delete_after=60)
@@ -283,7 +288,6 @@ async def servers(ctx, amount=1):
 
 # ------------- КОМАНДА ОТОБРАЖЕНИЯ ИФОРМАЦИИ О ПРИЛОЖЕНИЕ
 @client.command(aliases=['информация', 'инфо', 'авторы'], brief='Проверка состояния приложения', pass_context=True)
-# Команду может выполнить только владельце приложения
 async def information(ctx, amount=1):
     # Удаляем сообщение отправленное пользователем
     await ctx.channel.purge(limit=amount)
@@ -302,7 +306,13 @@ async def information(ctx, amount=1):
 
 
 # ------------- КОМАНДА ОТОБРАЖЕНИЯ ИФОРМАЦИИ О ПРИЛОЖЕНИЕ // КОНЕЦ
-
+@client.command(pass_context=True)
+@commands.is_owner()
+async def leave_server(ctx, id_to_kick: int):
+    if guild_to_leave := client.get_guild(id_to_kick) is None:
+        await ctx.send('No guild with such ID')
+        return
+    await guild_to_leave.leave()
 
 # Генирируемый токен при создание приложения на discordapp.com необходимый для подключенияю к серверу. //
 # Прописывается в config.py
