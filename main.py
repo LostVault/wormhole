@@ -196,7 +196,7 @@ async def on_command_error(ctx, error, amount=1):
 
 
 # ------------- КОММАНДА ПРОВЕРКА ПРИЛОЖЕНИЯ
-@client.command(aliases=['пинг'], brief='Проверка состояния приложения', pass_context=True)
+@client.command(aliases=['пинг'], brief='Проверить состояние приложения', pass_context=True)
 # Команду может выполнить только владельце приложения
 @commands.is_owner()
 async def ping(ctx, amount=1):
@@ -215,7 +215,7 @@ async def ping(ctx, amount=1):
 
 
 # ------------- КОМАНДА УДАЛЕНИЯ СООБЩЕНИЙ НА КАНАЛЕ
-@client.command(aliases=['очистить'], brief='Удаление ста последних сообщений на канале', pass_context=True)
+@client.command(aliases=['очистить'], brief='Удалить сто последних сообщений на канале', pass_context=True)
 # Команду может выполнить только пользователяь с ролью администратор
 @has_permissions(administrator=True)
 async def clear(ctx, amount=100):
@@ -251,7 +251,7 @@ async def shutdown(ctx, amount=1):
 
 
 # ------------- КОМАНДА ВНЕСЕНИЯ ПОЛЬЗОВАТЕЛЯ В ЧЁРНЫЙ СПИСОК
-@client.command(aliases=['добавить'], brief='Добавить пользователя в чёрный список.', pass_context=True)
+@client.command(aliases=['добавить'], brief='Внести пользователя в чёрный список', pass_context=True)
 # Команду может выполнить только владельце приложения
 @commands.is_owner()
 async def add(ctx, amount=1):
@@ -282,9 +282,9 @@ async def add(ctx, amount=1):
 
 
 # ------------- КОМАНДА ВЫВОДА СПИСКА СЕРВЕРОВ
-@client.command(aliases=['сервера'], brief='Проверка состояния приложения', pass_context=True)
+@client.command(aliases=['сервера'], brief='Показать список серверов, к которым подключено приложение', pass_context=True)
 # Команду может выполнить только владельце приложения
-# @commands.is_owner()
+@commands.is_owner()
 async def servers(ctx, amount=1):
     # Удаляем сообщение отправленное пользователем
     await ctx.channel.purge(limit=amount)
@@ -306,15 +306,14 @@ async def servers(ctx, amount=1):
 
 
 # ------------- КОМАНДА ОТОБРАЖЕНИЯ ИФОРМАЦИИ О ПРИЛОЖЕНИЕ
-@client.command(aliases=['информация', 'инфо', 'авторы'], brief='Проверка состояния приложения', pass_context=True)
+@client.command(aliases=['информация', 'инфо', 'авторы'], brief='Показать информацию о приложение', pass_context=True)
 async def information(ctx, amount=1):
     # Удаляем сообщение отправленное пользователем
     await ctx.channel.purge(limit=amount)
     print("".join(guild.name + '\n' for guild in client.guilds))
     # Создаём сообщение
     emInformation = discord.Embed(title='Информация',
-                                  description='Приложение создано для передачи текстовых сообщений между '
-                                              'серверами, связанных с игрой *Elite Dangerous*.',
+                                  description='Приложение создана для обмена текстовыми и файловыми сообщениями между серверами по игре [Elite Dangerous](https://www.elitedangerous.com/). В первую очередь приложение направлено помочь эскадронам с закрытыми серверами, обмениваться сообщениями с другими серверами и для тех серверов и пользователи которых предпочитают находится только на своём сервере по [Elite Dangerous](https://www.elitedangerous.com/). Для остальных же данное приложение может быть не так востребовано, но так как приложение не привязано к какому либо серверу, его можно использовать для серверов другой тематики.\n\nЕсли вы владеете одним из серверов по [Elite Dangerous](https://www.elitedangerous.com/) или связанной тематике и хотите подключить приложение к себе на сервер, воспользуйтесь данной [ссылкой](https://discordapp.com/oauth2/authorize?&client_id=826410895634333718&scope=bot&permissions=0), либо можете на основе исходного кода данного приложения сделать свою сеть обмена сообщениями например по торговле или другой игре.',
                                   colour=discord.Colour(16711684))
     emInformation.add_field(name='Разработчики ', value='• <@420130693696323585>\n• <@665018860587450388>')
     emInformation.add_field(name='Благодарности', value='• <@478527700710195203>')
@@ -342,7 +341,7 @@ async def leave_server(ctx, id_to_kick: int):
 
 
 # ------------- КОМАНДА СОЗДАНИЯ КАНАЛА ДЛЯ ПРИЁМА И ОТПРАВКИ СООБЩЕНИЙ
-@client.command(aliases=['установка', 'подключить'], brief='Создание канала для приёма и передачи сообщений', pass_context=True)
+@client.command(aliases=['установка', 'подключить'], brief='Создать канала для приёма и передачи сообщений', pass_context=True)
 # Команду может выполнить только пользователяь с ролью администратор
 @has_permissions(administrator=True)
 async def install(ctx, amount=1):
