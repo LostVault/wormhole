@@ -73,7 +73,7 @@ async def on_ready():
     # Показывает ID приложения указанное на discordapp.com
     print(' APP Client ID: {0.user.id} '.format(client))
     print(
-        ' Link for connection: https://discordapp.com/oauth2/authorize?&client_id={0.user.id}&scope'
+        ' Link for connection: https://discordapp.com/oauth2/authorize?&client_id={0.user.id}&permissions=0&scope=bot%20applications.commands'
         '=bot&permissions=0'.format(
             client))
     print('-••••••••••••••••••••••••••••••-')
