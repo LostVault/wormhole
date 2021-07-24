@@ -14,9 +14,6 @@ import config  # Импортируем настройки приложения
 # ------------- ИМПОРТ МОДУЛЕЙ // КОНЕЦ
 
 
-guild_ids = [866758975345393734]
-
-
 # ------------- СОЗДАЁМ ПРИЛОЖЕНИЕ И НАЗЫВАЕМ ЕГО CLIENT
 client = commands.Bot(description="Test bot", command_prefix=commands.when_mentioned_or(config.prefix),
                       case_insensitive=True, help_command=None)
