@@ -203,7 +203,7 @@ async def on_command_error(ctx, error, amount=1):
 
 
 # ------------- КОММАНДА ПРОВЕРКА ПРИЛОЖЕНИЯ
-@slash.slash(name="ping", description="Проверить состояние приложения.", guild_ids=guild_ids, options=None)
+@slash.slash(name="ping", description="Проверить состояние приложения.", guild_ids=config.guild_ids)
 # Команду может выполнить только владельце приложения
 @commands.is_owner()
 async def ping(ctx, amount=1):
@@ -233,8 +233,60 @@ async def ping(ctx, amount=1):
 # ------------- КОММАНДА ПРОВЕРКА ПРИЛОЖЕНИЯ // КОНЕЦ
 
 
+# ------------- КОММАНДА ПОМОЩИ
+@slash.slash(name="help", description="Показать информацию о командах используемых приложением.", guild_ids=config.guild_ids)
+# Команду может выполнить только владельце приложения
+@commands.is_owner()
+async def help(ctx, amount=1):
+    # Создаём информационное сообщение
+    emHelp = discord.Embed(title='ПОМОЩЬ', description='```Некоторые из ниже указанных команд могут не работать или для их использования могут требоваться определённые разрешения.```', colour=0x2F3136)
+    emHelp.add_field(name='Список комманд', value='`ping` - Проверить состояние приложения.\n`help` - Показать информацию о командах используемых приложением.\n`information` - Показать информацию о приложение.\n`clear` - Удалить сто последних сообщений на канале.\n`bluadd` - Записать пользователя в чёрный список.\n`bluremove` - Стереть пользователя из чёрного списка.\n`serverslist` - Показать список серверов, к которым подключено приложение.\n`serversleave` - Отключить приложение от указанного сервера.\n`setup` - Создать канала для приёма и передачи сообщений.')
+    emHelp.add_field(name='Дополнительная информация', value='Дополнительную информацию о приложение можно запросить командой `information`', inline=False)
+    # Отправляем информационное сообщение и удаляем его через 13 секунд
+    await ctx.send(embed=emHelp, delete_after=60)
+
+
+# ------------- КОММАНДА ПОМОЩИ // КОНЕЦ
+
+
+# ------------- КОМАНДА ОТОБРАЖЕНИЯ ИФОРМАЦИИ О ПРИЛОЖЕНИЕ
+@slash.slash(name="information", description="Показать информацию о приложение.", guild_ids=config.guild_ids)
+async def information(ctx, amount=1):
+    print("".join(guild.name + '\n' for guild in client.guilds))
+    # Создаём сообщение
+    emInformation = discord.Embed(title='ИНФОРМАЦИЯ',
+                                  description='Приложение создана для обмена текстовыми и файловыми сообщениями между серверами по игре [Elite Dangerous](https://www.elitedangerous.com/). В первую очередь приложение направлено помочь эскадронам с закрытыми серверами, обмениваться сообщениями с другими серверами и для тех серверов и пользователи которых предпочитают находится только на своём сервере по [Elite Dangerous](https://www.elitedangerous.com/). Для остальных же данное приложение может быть не так востребовано, но так как приложение не привязано к какому либо серверу, его можно использовать для серверов другой тематики.\n\nЕсли вы владеете одним из серверов по [Elite Dangerous](https://www.elitedangerous.com/) или связанной тематике и хотите подключить приложение к себе на сервер, воспользуйтесь данной [ссылкой](https://discordapp.com/oauth2/authorize?&client_id=826410895634333718&scope=bot&permissions=0), либо можете на основе исходного кода данного приложения сделать свою сеть обмена сообщениями например по торговле или другой игре.',
+                                  colour=0x2F3136)
+    emInformation.add_field(name='Разработчики ', value='• <@420130693696323585>\n• <@665018860587450388>')
+    emInformation.add_field(name='Благодарности', value='• <@478527700710195203>')
+    # emInformation.add_field(name='Список серверов', value="".join(guild.name + '\n' for guild in client.guilds))
+    emInformation.set_footer(text=client.user.name)
+    # Отправляем сообщение и удаляем его через 60 секунд
+    await ctx.send(embed=emInformation, delete_after=60)
+
+
+@client.command(aliases=['информация', 'инфо', 'авторы'], brief='Показать информацию о приложение.', pass_context=True)
+async def information(ctx, amount=1):
+    # Удаляем сообщение отправленное пользователем
+    await ctx.channel.purge(limit=amount)
+    print("".join(guild.name + '\n' for guild in client.guilds))
+    # Создаём сообщение
+    emInformation = discord.Embed(title='ИНФОРМАЦИЯ',
+                                  description='Приложение создана для обмена текстовыми и файловыми сообщениями между серверами по игре [Elite Dangerous](https://www.elitedangerous.com/). В первую очередь приложение направлено помочь эскадронам с закрытыми серверами, обмениваться сообщениями с другими серверами и для тех серверов и пользователи которых предпочитают находится только на своём сервере по [Elite Dangerous](https://www.elitedangerous.com/). Для остальных же данное приложение может быть не так востребовано, но так как приложение не привязано к какому либо серверу, его можно использовать для серверов другой тематики.\n\nЕсли вы владеете одним из серверов по [Elite Dangerous](https://www.elitedangerous.com/) или связанной тематике и хотите подключить приложение к себе на сервер, воспользуйтесь данной [ссылкой](https://discordapp.com/oauth2/authorize?&client_id=826410895634333718&scope=bot&permissions=0), либо можете на основе исходного кода данного приложения сделать свою сеть обмена сообщениями например по торговле или другой игре.',
+                                  colour=0x2F3136)
+    emInformation.add_field(name='Разработчики ', value='• <@420130693696323585>\n• <@665018860587450388>')
+    emInformation.add_field(name='Благодарности', value='• <@478527700710195203>')
+    # emInformation.add_field(name='Список серверов', value="".join(guild.name + '\n' for guild in client.guilds))
+    emInformation.set_footer(text=client.user.name)
+    # Отправляем сообщение и удаляем его через 60 секунд
+    await ctx.send(embed=emInformation, delete_after=60)
+
+
+# ------------- КОМАНДА ОТОБРАЖЕНИЯ ИФОРМАЦИИ О ПРИЛОЖЕНИЕ // КОНЕЦ
+
+
 # ------------- КОМАНДА УДАЛЕНИЯ СООБЩЕНИЙ НА КАНАЛЕ
-@client.command(aliases=['очистить'], brief='Удалить сто последних сообщений на канале', pass_context=True)
+@client.command(aliases=['очистить'], brief='Удалить сто последних сообщений на канале.', pass_context=True)
 # Команду может выполнить только пользователяь с ролью администратор
 @has_permissions(administrator=True)
 async def clear(ctx, amount=100):
@@ -245,73 +297,49 @@ async def clear(ctx, amount=100):
 # ------------- КОМАНДА УДАЛЕНИЯ СООБЩЕНИЙ НА КАНАЛЕ // КОНЕЦ
 
 
-# ------------- КОМАНДА ОТКЛЮЧЕНИЯ ПРИЛОЖЕНИЯ
-@client.command(aliases=['выключить'], brief='Выключение приложения по команде', pass_context=True)
+# ------------- КОМАНДА ЗАПИСИ ПОЛЬЗОВАТЕЛЯ В ЧЁРНЫЙ СПИСОК
+@client.command(aliases=['добавить'], brief='Записать пользователя в чёрный список.', pass_context=True)
 # Команду может выполнить только владельце приложения
 @commands.is_owner()
-async def shutdown(ctx, amount=1):
-    # Удаляем сообщение отправленное пользователем
-    try:
-        await ctx.channel.purge(limit=amount)
-    except Exception:
-        pass
-    # Отправляем сообщение в общий канал
-    for guild in client.guilds:
-        if channel := discord.utils.get(guild.text_channels, name=config.globalchannel):
-            await channel.send('` ⚠ • ВНИМАНИЕ! ` Приложение остановлено.')
-    # Отключаем приложение
-    print('\n-••••••••••••••••••••••••••••••-')
-    print(' Goodbye World!')
-    print('-••••••••••••••••••••••••••••••-\n')
-    quit()
-
-
-# ------------- КОМАНДА ОТКЛЮЧЕНИЯ ПРИЛОЖЕНИЯ // КОНЕЦ
-
-
-# ------------- КОМАНДА ВНЕСЕНИЯ ПОЛЬЗОВАТЕЛЯ В ЧЁРНЫЙ СПИСОК
-@client.command(aliases=['добавить'], brief='Внести пользователя в чёрный список', pass_context=True)
-# Команду может выполнить только владельце приложения
-@commands.is_owner()
-async def add(ctx, amount=1):
+async def bluadd(ctx, amount=1):
     userid_to_ban = ctx.message.content.split(' ')[1]
     await ctx.message.delete()
     try:
         userid_to_ban = int(userid_to_ban)
     except ValueError:
-        await ctx.channel.send('Для бана необходимо указать ID пользователя')
+        await ctx.channel.send('Для блокировки пользователя необходимо указать ID пользователя')
         return
     await client.sql_conn.execute('insert into black_list (userid) values (?);', [userid_to_ban])
     await client.sql_conn.commit()
 
     # Создаём информационное сообщение
     emBlackListAdd = discord.Embed(title='⚠ • ВНИМАНИЕ!', description='Пользователь с ID ' + str(userid_to_ban) +
-                                                                      ' внесён в чёрный список.', color=0xd40000)
+                                                                      ' записан в чёрный список.', color=0xd40000)
     # Отправляем информационное сообщение и удаляем его через 13 секунд
     await ctx.send(embed=emBlackListAdd, delete_after=13)
     # Отправляем сообщение - Обычное
     # await ctx.channel.send(f'` ⚠ • ВНИМАНИЕ! ` Пользователь с ID {userid_to_ban} внесён в чёрный список.')
 
 
-# ------------- КОМАНДА ВНЕСЕНИЯ ПОЛЬЗОВАТЕЛЯ В ЧЁРНЫЙ СПИСОК // КОНЕЦ
+# ------------- КОМАНДА ЗАПИСИ ПОЛЬЗОВАТЕЛЯ В ЧЁРНЫЙ СПИСОК // КОНЕЦ
 
 
-# ------------- КОМАНДА ВЫНЕСЕНИЯ ПОЛЬЗОВАТЕЛЯ ИЗ ЧЁРНОГО СПИСКА
-# ------------- КОМАНДА ВЫНЕСЕНИЯ ПОЛЬЗОВАТЕЛЯ ИЗ ЧЁРНОГО СПИСКА // КОНЕЦ
+# ------------- КОМАНДА УДАЛЕНИЯ ПОЛЬЗОВАТЕЛЯ ИЗ ЧЁРНОГО СПИСКА
+# ------------- КОМАНДА УДАЛЕНИЯ ПОЛЬЗОВАТЕЛЯ ИЗ ЧЁРНОГО СПИСКА // КОНЕЦ
 
 
 # ------------- КОМАНДА ВЫВОДА СПИСКА СЕРВЕРОВ
-@client.command(aliases=['сервера'], brief='Показать список серверов, к которым подключено приложение', pass_context=True)
+@client.command(aliases=['сервера'], brief='Показать список серверов, к которым подключено приложение.', pass_context=True)
 # Команду может выполнить только владельце приложения
 @commands.is_owner()
-async def servers(ctx, amount=1):
+async def serverslist(ctx, amount=1):
     # Удаляем сообщение отправленное пользователем
     await ctx.channel.purge(limit=amount)
     print("".join(guild.name + '\n' for guild in client.guilds))
     # Создаём сообщение
-    emServers = discord.Embed(title='Сервера',
+    emServers = discord.Embed(title='СПИСОК СЕРВЕРОВ',
                               description='Список серверов, к которым подключено приложение.',
-                              colour=discord.Colour(16711684))
+                              colour=0x2F3136)
 
     emServers.add_field(
         name='Список серверов',
@@ -324,48 +352,11 @@ async def servers(ctx, amount=1):
 # ------------- КОМАНДА ВЫВОДА СПИСКА СЕРВЕРОВ // КОНЕЦ
 
 
-# ------------- КОМАНДА ОТОБРАЖЕНИЯ ИФОРМАЦИИ О ПРИЛОЖЕНИЕ
-
-@slash.slash(name="information", description="Показать информацию о приложение.", guild_ids=guild_ids)
-async def information(ctx, amount=1):
-    print("".join(guild.name + '\n' for guild in client.guilds))
-    # Создаём сообщение
-    emInformation = discord.Embed(title='Информация',
-                                  description='Приложение создана для обмена текстовыми и файловыми сообщениями между серверами по игре [Elite Dangerous](https://www.elitedangerous.com/). В первую очередь приложение направлено помочь эскадронам с закрытыми серверами, обмениваться сообщениями с другими серверами и для тех серверов и пользователи которых предпочитают находится только на своём сервере по [Elite Dangerous](https://www.elitedangerous.com/). Для остальных же данное приложение может быть не так востребовано, но так как приложение не привязано к какому либо серверу, его можно использовать для серверов другой тематики.\n\nЕсли вы владеете одним из серверов по [Elite Dangerous](https://www.elitedangerous.com/) или связанной тематике и хотите подключить приложение к себе на сервер, воспользуйтесь данной [ссылкой](https://discordapp.com/oauth2/authorize?&client_id=826410895634333718&scope=bot&permissions=0), либо можете на основе исходного кода данного приложения сделать свою сеть обмена сообщениями например по торговле или другой игре.',
-                                  colour=0x2F3136)
-    emInformation.add_field(name='Разработчики ', value='• <@420130693696323585>\n• <@665018860587450388>')
-    emInformation.add_field(name='Благодарности', value='• <@478527700710195203>')
-    emInformation.add_field(name='Список серверов', value="".join(guild.name + '\n' for guild in client.guilds))
-    emInformation.set_footer(text=client.user.name)
-    # Отправляем сообщение и удаляем его через 60 секунд
-    await ctx.send(embed=emInformation, delete_after=60)
-
-
-@client.command(aliases=['информация', 'инфо', 'авторы'], brief='Показать информацию о приложение.', pass_context=True)
-async def information(ctx, amount=1):
-    # Удаляем сообщение отправленное пользователем
-    await ctx.channel.purge(limit=amount)
-    print("".join(guild.name + '\n' for guild in client.guilds))
-    # Создаём сообщение
-    emInformation = discord.Embed(title='Информация',
-                                  description='Приложение создана для обмена текстовыми и файловыми сообщениями между серверами по игре [Elite Dangerous](https://www.elitedangerous.com/). В первую очередь приложение направлено помочь эскадронам с закрытыми серверами, обмениваться сообщениями с другими серверами и для тех серверов и пользователи которых предпочитают находится только на своём сервере по [Elite Dangerous](https://www.elitedangerous.com/). Для остальных же данное приложение может быть не так востребовано, но так как приложение не привязано к какому либо серверу, его можно использовать для серверов другой тематики.\n\nЕсли вы владеете одним из серверов по [Elite Dangerous](https://www.elitedangerous.com/) или связанной тематике и хотите подключить приложение к себе на сервер, воспользуйтесь данной [ссылкой](https://discordapp.com/oauth2/authorize?&client_id=826410895634333718&scope=bot&permissions=0), либо можете на основе исходного кода данного приложения сделать свою сеть обмена сообщениями например по торговле или другой игре.',
-                                  colour=0x2F3136)
-    emInformation.add_field(name='Разработчики ', value='• <@420130693696323585>\n• <@665018860587450388>')
-    emInformation.add_field(name='Благодарности', value='• <@478527700710195203>')
-    emInformation.add_field(name='Список серверов', value="".join(guild.name + '\n' for guild in client.guilds))
-    emInformation.set_footer(text=client.user.name)
-    # Отправляем сообщение и удаляем его через 60 секунд
-    await ctx.send(embed=emInformation, delete_after=60)
-
-
-# ------------- КОМАНДА ОТОБРАЖЕНИЯ ИФОРМАЦИИ О ПРИЛОЖЕНИЕ // КОНЕЦ
-
-
 # ------------- КОМАНДА ОТКЛЮЧЕНИЯ ПРИЛОЖЕНИЯ ОТ СЕРВЕРА
 @client.command(pass_context=True)
 # Команду может выполнить только владельце приложения
 @commands.is_owner()
-async def leave_server(ctx, id_to_kick: int):
+async def serversleave(ctx, id_to_kick: int):
     if guild_to_leave := client.get_guild(id_to_kick) is None:
         await ctx.send('No guild with such ID')
         return
@@ -376,10 +367,10 @@ async def leave_server(ctx, id_to_kick: int):
 
 
 # ------------- КОМАНДА СОЗДАНИЯ КАНАЛА ДЛЯ ПРИЁМА И ОТПРАВКИ СООБЩЕНИЙ
-@client.command(aliases=['установка', 'подключить'], brief='Создать канала для приёма и передачи сообщений', pass_context=True)
+@client.command(aliases=['установка', 'подключить'], brief='Создать канала для приёма и передачи сообщений.', pass_context=True)
 # Команду может выполнить только пользователяь с ролью администратор
 @has_permissions(administrator=True)
-async def install(ctx, amount=1):
+async def setup(ctx, amount=1):
     # Удаляем сообщение отправленное пользователем
     await ctx.channel.purge(limit=amount)
     # Создаём канал
