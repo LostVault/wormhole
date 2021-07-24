@@ -2,19 +2,31 @@
 
 import logging  # Импортируем моудль логирования
 
-import aiosqlite
+import aiosqlite # Импортируем моудль работы с базами SQLite
 import discord  # Импортируем основной модуль
 from discord.ext import commands  # Импортируем команды из модуля discord.ext
 from discord.ext.commands import has_permissions
+from discord_slash import SlashCommand, SlashContext # Импортируем модуль команд с косой чертой (slash)
+# from discord_slash.utils.manage_commands import create_choice, create_option
 
 import config  # Импортируем настройки приложения
 
 # ------------- ИМПОРТ МОДУЛЕЙ // КОНЕЦ
 
 
+guild_ids = [866758975345393734]
+
+
 # ------------- СОЗДАЁМ ПРИЛОЖЕНИЕ И НАЗЫВАЕМ ЕГО CLIENT
 client = commands.Bot(description="Test bot", command_prefix=commands.when_mentioned_or(config.prefix),
                       case_insensitive=True, help_command=None)
+
+
+# ------------- СОЗДАЁМ ОБРАБОТКУ КОМАНДЫ С КОСОЙ ЧЕРТОЙ ЧЕРЕЗ СОЗДАННОЕ ПРИЛОЖЕНИЕ
+slash = SlashCommand(client, sync_commands=True)
+
+
+# ------------- СОЗДАЁМ ОБРАБОТКУ КОМАНДЫ С КОСОЙ ЧЕРТОЙ ЧЕРЕЗ СОЗДАННОЕ ПРИЛОЖЕНИЕ // КОНЕЦ
 
 
 # ------------- ВЫВОДИМ ДАННЫЕ ПРДКЛЮЧЕНИЯ ПРИЛОЖЕНИЯ В КОНСОЛЬ
@@ -88,7 +100,7 @@ async def on_ready():
 @client.event
 async def on_message(message):
     # Дублирует сообщения в консоль приложения
-    print('Server {0.guild} / Channel #{0.channel} / {0.author}: {0.content}'.format(message))
+    print('{0.guild} / #{0.channel} / {0.author}: {0.content}'.format(message))
 
     # Пропускает комманды для регистрации
     await client.process_commands(message)
@@ -141,9 +153,7 @@ async def on_message(message):
         pass
 
     # Создаём сообщение
-    emGlobalMessage = discord.Embed(
-        description=f" [{message.author.name}](https://discord.com/users/{message.author.id}) — {message.content}",
-        colour=0x33248e)
+    emGlobalMessage = discord.Embed(description=f" **{message.author.name}**: {message.content}", colour=0x2F3136)
     emGlobalMessage.set_footer(icon_url=message.guild.icon_url,
                                text=f"Сервер: {message.guild.name} // ID пользователя: {message.author.id}")
 
@@ -196,7 +206,19 @@ async def on_command_error(ctx, error, amount=1):
 
 
 # ------------- КОММАНДА ПРОВЕРКА ПРИЛОЖЕНИЯ
-@client.command(aliases=['пинг'], brief='Проверить состояние приложения', pass_context=True)
+@slash.slash(name="ping", description="Проверить состояние приложения.", guild_ids=guild_ids, options=None)
+# Команду может выполнить только владельце приложения
+@commands.is_owner()
+async def ping(ctx, amount=1):
+    # Создаём информационное сообщение
+    emPing = discord.Embed(title='⚠ • ВНИМАНИЕ!', description='Получен ответ.', colour=0x90D400)
+    # Отправляем информационное сообщение и удаляем его через 13 секунд
+    await ctx.send(embed=emPing, delete_after=13)
+    # Отправляем сообщение - Обычное
+    # await ctx.send(f'` **{ctx.author.name}** ` Pong! ({client.latency * 1000}ms)', delete_after=13)
+
+
+@client.command(aliases=['пинг'], brief='Проверить состояние приложения.', pass_context=True)
 # Команду может выполнить только владельце приложения
 @commands.is_owner()
 async def ping(ctx, amount=1):
@@ -306,7 +328,23 @@ async def servers(ctx, amount=1):
 
 
 # ------------- КОМАНДА ОТОБРАЖЕНИЯ ИФОРМАЦИИ О ПРИЛОЖЕНИЕ
-@client.command(aliases=['информация', 'инфо', 'авторы'], brief='Показать информацию о приложение', pass_context=True)
+
+@slash.slash(name="information", description="Показать информацию о приложение.", guild_ids=guild_ids)
+async def information(ctx, amount=1):
+    print("".join(guild.name + '\n' for guild in client.guilds))
+    # Создаём сообщение
+    emInformation = discord.Embed(title='Информация',
+                                  description='Приложение создана для обмена текстовыми и файловыми сообщениями между серверами по игре [Elite Dangerous](https://www.elitedangerous.com/). В первую очередь приложение направлено помочь эскадронам с закрытыми серверами, обмениваться сообщениями с другими серверами и для тех серверов и пользователи которых предпочитают находится только на своём сервере по [Elite Dangerous](https://www.elitedangerous.com/). Для остальных же данное приложение может быть не так востребовано, но так как приложение не привязано к какому либо серверу, его можно использовать для серверов другой тематики.\n\nЕсли вы владеете одним из серверов по [Elite Dangerous](https://www.elitedangerous.com/) или связанной тематике и хотите подключить приложение к себе на сервер, воспользуйтесь данной [ссылкой](https://discordapp.com/oauth2/authorize?&client_id=826410895634333718&scope=bot&permissions=0), либо можете на основе исходного кода данного приложения сделать свою сеть обмена сообщениями например по торговле или другой игре.',
+                                  colour=0x2F3136)
+    emInformation.add_field(name='Разработчики ', value='• <@420130693696323585>\n• <@665018860587450388>')
+    emInformation.add_field(name='Благодарности', value='• <@478527700710195203>')
+    emInformation.add_field(name='Список серверов', value="".join(guild.name + '\n' for guild in client.guilds))
+    emInformation.set_footer(text=client.user.name)
+    # Отправляем сообщение и удаляем его через 60 секунд
+    await ctx.send(embed=emInformation, delete_after=60)
+
+
+@client.command(aliases=['информация', 'инфо', 'авторы'], brief='Показать информацию о приложение.', pass_context=True)
 async def information(ctx, amount=1):
     # Удаляем сообщение отправленное пользователем
     await ctx.channel.purge(limit=amount)
@@ -314,11 +352,11 @@ async def information(ctx, amount=1):
     # Создаём сообщение
     emInformation = discord.Embed(title='Информация',
                                   description='Приложение создана для обмена текстовыми и файловыми сообщениями между серверами по игре [Elite Dangerous](https://www.elitedangerous.com/). В первую очередь приложение направлено помочь эскадронам с закрытыми серверами, обмениваться сообщениями с другими серверами и для тех серверов и пользователи которых предпочитают находится только на своём сервере по [Elite Dangerous](https://www.elitedangerous.com/). Для остальных же данное приложение может быть не так востребовано, но так как приложение не привязано к какому либо серверу, его можно использовать для серверов другой тематики.\n\nЕсли вы владеете одним из серверов по [Elite Dangerous](https://www.elitedangerous.com/) или связанной тематике и хотите подключить приложение к себе на сервер, воспользуйтесь данной [ссылкой](https://discordapp.com/oauth2/authorize?&client_id=826410895634333718&scope=bot&permissions=0), либо можете на основе исходного кода данного приложения сделать свою сеть обмена сообщениями например по торговле или другой игре.',
-                                  colour=discord.Colour(16711684))
+                                  colour=0x2F3136)
     emInformation.add_field(name='Разработчики ', value='• <@420130693696323585>\n• <@665018860587450388>')
     emInformation.add_field(name='Благодарности', value='• <@478527700710195203>')
     emInformation.add_field(name='Список серверов', value="".join(guild.name + '\n' for guild in client.guilds))
-    emInformation.set_footer(text=' ' + client.user.name + ' ')
+    emInformation.set_footer(text=client.user.name)
     # Отправляем сообщение и удаляем его через 60 секунд
     await ctx.send(embed=emInformation, delete_after=60)
 
