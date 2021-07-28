@@ -86,7 +86,7 @@ async def on_ready():
     emStatusOn = discord.Embed(title='⚠ • ВНИМАНИЕ!', description='Приложение запущено.', colour=0x90D400)
     emStatusOn.set_image(
         url="https://media.discordapp.net/attachments/682731260719661079/682731350922493952/ED1.gif")
-    await send_to_servers(embed=emStatusOn)
+    await send_to_servers(embed=emStatusOn, delete_after=13)
     # Отправляем сообщение
 
 
@@ -98,6 +98,7 @@ async def on_ready():
 async def on_message(message):
     # Дублирует сообщения в консоль приложения
     print('{0.guild} / #{0.channel} / {0.author}: {0.content}'.format(message))
+
 
     # Пропускает комманды для регистрации
     await client.process_commands(message)
@@ -375,7 +376,7 @@ async def setup(ctx, amount=1):
     await ctx.channel.purge(limit=amount)
     # Создаём канал
     guild = ctx.message.guild
-    await guild.create_text_channel('wormhole')
+    await guild.create_text_channel(name='wormhole')
 
 # ------------- КОМАНДА СОЗДАНИЯ КАНАЛА ДЛЯ ПРИЁМА И ОТПРАВКИ СООБЩЕНИЙ // КОНЕЦ
 
