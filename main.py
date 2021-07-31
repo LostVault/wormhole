@@ -1,12 +1,12 @@
 # ------------- ИМПОРТ МОДУЛЕЙ
 
-import logging  # Импортируем моудль логирования
+import logging  # Импортируем модуль логирования
 
-import aiosqlite # Импортируем моудль работы с базами SQLite
+import aiosqlite  # Импортируем модуль работы с базами SQLite
 import discord  # Импортируем основной модуль
 from discord.ext import commands  # Импортируем команды из модуля discord.ext
 from discord.ext.commands import has_permissions
-from discord_slash import SlashCommand, SlashContext # Импортируем модуль команд с косой чертой (slash)
+from discord_slash import SlashCommand, SlashContext  # Импортируем модуль команд с косой чертой (slash)
 # from discord_slash.utils.manage_commands import create_choice, create_option
 
 import config  # Импортируем настройки приложения
@@ -70,7 +70,8 @@ async def on_ready():
     # Показывает ID приложения указанное на discordapp.com
     print(' APP Client ID: {0.user.id} '.format(client))
     print(
-        ' Link for connection: https://discordapp.com/oauth2/authorize?&client_id={0.user.id}&permissions=0&scope=bot%20applications.commands'
+        'Link for connection: https://discordapp.com/oauth2/authorize?&client_id={'
+        '0.user.id}&permissions=0&scope=bot%20applications.commands '
         '=bot&permissions=0'.format(
             client))
     print('-••••••••••••••••••••••••••••••-')
@@ -99,14 +100,14 @@ async def on_message(message):
     # Дублирует сообщения в консоль приложения
     print('{0.guild} / #{0.channel} / {0.author}: {0.content}'.format(message))
 
-    # Пропускает комманды для регистрации
+    # Пропускает команды для регистрации
     await client.process_commands(message)
 
-    # Игнорируем сообщения, начинающиеся с преффикса комманд
+    # Игнорируем сообщения, начинающиеся с префикса команд
     if message.content.startswith(config.prefix) or client.user.mentioned_in(message):
         return
 
-    # Игнорируем сообщения, отправленные другими приложениеми
+    # Игнорируем сообщения, отправленные другими приложениями
     if message.author.bot:
         return
 
@@ -138,8 +139,8 @@ async def on_message(message):
             'select count(*) from black_list where userid = ?;', [message.author.id])).fetchone())[0] == 1:
         await message.delete()
         await message.channel.send(
-            '` ⚠ • ВНИМАНИЕ! ` Пользователи, нахоядщиеся в списке **Black Overlord List**, не могут отправлять '
-            'собщения на другие сервера.'.format(
+            '` ⚠ • ВНИМАНИЕ! ` Пользователи, находящиеся в списке **Black Overlord List**, не могут отправлять '
+            'сообщения на другие сервера.'.format(
                 message), delete_after=13)
         return
 
@@ -177,7 +178,7 @@ async def on_command_error(ctx, error, amount=1):
                                                          + ctx.message.content + '** не существует.',
                                              color=0xd40000)
         embedcommandnotfound.set_footer(icon_url=ctx.author.avatar_url,
-                                        text='Vox Galactica // Сообщение удалится через 13 секудн.')
+                                        text='Vox Galactica // Сообщение удалится через 13 секунд.')
         # Отправляем сообщение и удаляем его через 13 секунд
         await ctx.send(embed=embedcommandnotfound, delete_after=13)
         return
@@ -188,11 +189,11 @@ async def on_command_error(ctx, error, amount=1):
         # Создаём информационное сообщение
         embedcommandMissingPermissions = discord.Embed(title='ВНИМАНИЕ!',
                                                        description='' + ctx.author.mention
-                                                                   + ', к сожалению, у вас нет прав на комманду **'
+                                                                   + ', к сожалению, у вас нет прав на команду **'
                                                                    + ctx.message.content + '',
                                                        color=0xd40000)
         embedcommandMissingPermissions.set_footer(icon_url=ctx.author.avatar_url,
-                                                  text='Vox Galactica // Сообщение удалится через 13 секудн.')
+                                                  text='Vox Galactica // Сообщение удалится через 13 секунд.')
         # Отправляем информационное сообщение и удаляем его через 13 секунд
         await ctx.send(embed=embedcommandMissingPermissions, delete_after=13)
         return
@@ -240,7 +241,7 @@ async def ping(ctx, amount=1):
 async def help(ctx, amount=1):
     # Создаём информационное сообщение
     emHelp = discord.Embed(title='ПОМОЩЬ', description='```Некоторые из ниже указанных команд могут не работать или для их использования могут требоваться определённые разрешения.```', colour=0x2F3136)
-    emHelp.add_field(name='Список комманд', value='`ping` - Проверить состояние приложения.\n`help` - Показать информацию о командах используемых приложением.\n`information` - Показать информацию о приложение.\n`clear` - Удалить сто последних сообщений на канале.\n`bluadd` - Записать пользователя в чёрный список.\n`bluremove` - Стереть пользователя из чёрного списка.\n`serverslist` - Показать список серверов, к которым подключено приложение.\n`serversleave` - Отключить приложение от указанного сервера.\n`setup` - Создать канала для приёма и передачи сообщений.')
+    emHelp.add_field(name='Список команд', value='`ping` - Проверить состояние приложения.\n`help` - Показать информацию о командах используемых приложением.\n`information` - Показать информацию о приложение.\n`clear` - Удалить сто последних сообщений на канале.\n`bluadd` - Записать пользователя в чёрный список.\n`bluremove` - Стереть пользователя из чёрного списка.\n`serverslist` - Показать список серверов, к которым подключено приложение.\n`serversleave` - Отключить приложение от указанного сервера.\n`setup` - Создать канала для приёма и передачи сообщений.')
     emHelp.add_field(name='Дополнительная информация', value='Дополнительную информацию о приложение можно запросить командой `information`', inline=False)
     # Отправляем информационное сообщение и удаляем его через 13 секунд
     await ctx.send(embed=emHelp, delete_after=60)
@@ -287,7 +288,7 @@ async def information(ctx, amount=1):
 
 # ------------- КОМАНДА УДАЛЕНИЯ СООБЩЕНИЙ НА КАНАЛЕ
 @client.command(aliases=['очистить'], brief='Удалить сто последних сообщений на канале.', pass_context=True)
-# Команду может выполнить только пользователяь с ролью администратор
+# Команду может выполнить только пользователь, с ролью администратор
 @has_permissions(administrator=True)
 async def clear(ctx, amount=100):
     # Удаляем сто последних сообщений на канале
@@ -299,7 +300,7 @@ async def clear(ctx, amount=100):
 
 # ------------- КОМАНДА ЗАПИСИ ПОЛЬЗОВАТЕЛЯ В ЧЁРНЫЙ СПИСОК
 @client.command(aliases=['добавить'], brief='Записать пользователя в чёрный список.', pass_context=True)
-# Команду может выполнить только владельце приложения
+# Команду может выполнить только владелец приложения
 @commands.is_owner()
 async def bluadd(ctx, amount=1):
     userid_to_ban = ctx.message.content.split(' ')[1]
@@ -331,10 +332,10 @@ async def bluadd(ctx, amount=1):
 # ------------- КОМАНДА ВЫВОДА СПИСКА СЕРВЕРОВ
 @client.command(aliases=['сервера'], brief='Показать список серверов, к которым подключено приложение.',
                 pass_context=True)
-# Команду может выполнить только владельце приложения
+# Команду может выполнить только владелец приложения
 @commands.is_owner()
 async def servers_list(ctx, amount=1):
-    # Удаляем сообщение отправленное пользователем
+    # Удаляем сообщение, отправленное пользователем
     await ctx.channel.purge(limit=amount)
     print("".join(guild.name + '\n' for guild in client.guilds))
     # Создаём сообщение
@@ -355,7 +356,7 @@ async def servers_list(ctx, amount=1):
 
 # ------------- КОМАНДА ОТКЛЮЧЕНИЯ ПРИЛОЖЕНИЯ ОТ СЕРВЕРА
 @client.command(pass_context=True)
-# Команду может выполнить только владельце приложения
+# Команду может выполнить только владелец приложения
 @commands.is_owner()
 async def server_leave(ctx, id_to_kick: int):
     if guild_to_leave := client.get_guild(id_to_kick) is None:
@@ -370,10 +371,10 @@ async def server_leave(ctx, id_to_kick: int):
 # ------------- КОМАНДА СОЗДАНИЯ КАНАЛА ДЛЯ ПРИЁМА И ОТПРАВКИ СООБЩЕНИЙ
 @client.command(aliases=['установка', 'подключить'], brief='Создать канала для приёма и передачи сообщений.',
                 pass_context=True)
-# Команду может выполнить только пользователяь с ролью администратор
+# Команду может выполнить только пользователь, с ролью администратор
 @has_permissions(administrator=True)
 async def setup(ctx, amount=1):
-    # Удаляем сообщение отправленное пользователем
+    # Удаляем сообщение, отправленное пользователем
     await ctx.channel.purge(limit=amount)
     # Создаём канал
     guild = ctx.message.guild
@@ -382,7 +383,7 @@ async def setup(ctx, amount=1):
 # ------------- КОМАНДА СОЗДАНИЯ КАНАЛА ДЛЯ ПРИЁМА И ОТПРАВКИ СООБЩЕНИЙ // КОНЕЦ
 
 
-# Генирируемый токен при создание приложения на discordapp.com необходимый для подключенияю к серверу. //
+# Генерируемый токен при создание приложения на discordapp.com, необходимый для подключения к серверу. //
 # Прописывается в config.py
 client.run(config.token)
 
