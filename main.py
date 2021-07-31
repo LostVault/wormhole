@@ -19,10 +19,8 @@ import config  # Импортируем настройки приложения
 client = commands.Bot(description="Test bot", command_prefix=commands.when_mentioned_or(config.prefix),
                       case_insensitive=True, help_command=None)
 
-
 # ------------- СОЗДАЁМ ОБРАБОТКУ КОМАНДЫ С КОСОЙ ЧЕРТОЙ ЧЕРЕЗ СОЗДАННОЕ ПРИЛОЖЕНИЕ
 slash = SlashCommand(client, sync_commands=True)
-
 
 # ------------- СОЗДАЁМ ОБРАБОТКУ КОМАНДЫ С КОСОЙ ЧЕРТОЙ ЧЕРЕЗ СОЗДАННОЕ ПРИЛОЖЕНИЕ // КОНЕЦ
 
@@ -52,6 +50,7 @@ async def send_to_servers(*args, **kwargs):
                 print(f"System: Невозможно отправить сообщение на сервер {guild.name}: {e}")
             except Exception as e:
                 print(f"System: Не получилось отправить сообщение на сервер {guild.name}: {e}")
+
 
 # ------------- БЫСТЫРЫЙ СКРИПТ НА ОТПРАВКУ СООБЩЕНИЙ // КОНЕЦ
 
@@ -226,22 +225,44 @@ async def ping(ctx):
     await ctx.message.delete()
     await common_ping(ctx)
 
+
 # ------------- КОМАНДА ПРОВЕРКА ПРИЛОЖЕНИЯ // КОНЕЦ
 
 
-# ------------- КОММАНДА ПОМОЩИ
-@slash.slash(name="help", description="Показать информацию о командах используемых приложением.", guild_ids=[])
-# Команду может выполнить только владелец приложения
-@commands.is_owner()
-async def help(ctx, amount=1):
+# ------------- КОМАНДА ПОМОЩИ
+async def common_help(ctx):
     # Создаём информационное сообщение
-    emHelp = discord.Embed(title='ПОМОЩЬ', description='```Некоторые из ниже указанных команд могут не работать или для их использования могут требоваться определённые разрешения.```', colour=0x2F3136)
-    emHelp.add_field(name='Список команд', value='`ping` - Проверить состояние приложения.\n`help` - Показать информацию о командах используемых приложением.\n`information` - Показать информацию о приложение.\n`clear` - Удалить сто последних сообщений на канале.\n`bluadd` - Записать пользователя в чёрный список.\n`bluremove` - Стереть пользователя из чёрного списка.\n`serverslist` - Показать список серверов, к которым подключено приложение.\n`serversleave` - Отключить приложение от указанного сервера.\n`setup` - Создать канала для приёма и передачи сообщений.')
-    emHelp.add_field(name='Дополнительная информация', value='Дополнительную информацию о приложение можно запросить командой `information`', inline=False)
+    emHelp = discord.Embed(
+        title='ПОМОЩЬ',
+        description='```Некоторые из ниже указанных команд могут не работать или для их '
+                    'использования могут требоваться определённые разрешения.```',
+        colour=0x2F3136)
+    emHelp.add_field(name='Список команд',
+                     value='`ping` - Проверить состояние приложения.\n`help` - Показать информацию о командах '
+                           'используемых приложением.\n`information` - Показать информацию о приложение.\n`clear` - '
+                           'Удалить сто последних сообщений на канале.\n`bluadd` - Записать пользователя в чёрный '
+                           'список.\n`bluremove` - Стереть пользователя из чёрного списка.\n`serverslist` - Показать '
+                           'список серверов, к которым подключено приложение.\n`serversleave` - Отключить приложение '
+                           'от указанного сервера.\n`setup` - Создать канала для приёма и передачи сообщений.')
+    emHelp.add_field(name='Дополнительная информация',
+                     value='Дополнительную информацию о приложение можно запросить командой `information`',
+                     inline=False)
     # Отправляем информационное сообщение и удаляем его через 13 секунд
     await ctx.send(embed=emHelp, delete_after=60)
 
 
+@slash.slash(name="help", description="Показать информацию о командах используемых приложением.",
+             guild_ids=[guild.id for guild in client.guilds])
+# Команду может выполнить только владелец приложения
+@commands.is_owner()
+async def help(ctx):
+    await common_help(ctx)
+
+
+@client.command(name='help', brief='Проверить состояние приложения.', pass_context=True)
+async def help(ctx):
+    await ctx.message.delete()
+    await common_help(ctx)
 # ------------- КОММАНДА ПОМОЩИ // КОНЕЦ
 
 
@@ -286,6 +307,7 @@ async def information(ctx):
 async def information(ctx):
     await ctx.message.delete()
     await common_information(ctx)
+
 
 # ------------- КОМАНДА ОТОБРАЖЕНИЯ ИФОРМАЦИИ О ПРИЛОЖЕНИЕ // КОНЕЦ
 
@@ -384,12 +406,12 @@ async def setup(ctx, amount=1):
     guild = ctx.message.guild
     await guild.create_text_channel(name='wormhole')
 
+
 # ------------- КОМАНДА СОЗДАНИЯ КАНАЛА ДЛЯ ПРИЁМА И ОТПРАВКИ СООБЩЕНИЙ // КОНЕЦ
 
 
 # Генерируемый токен при создание приложения на discordapp.com, необходимый для подключения к серверу. //
 # Прописывается в config.py
 client.run(config.token)
-
 
 # ------------- СОЗДАЁМ ПРИЛОЖЕНИЕ И НАЗЫВАЕМ ЕГО CLIENT  // КОНЕЦ
