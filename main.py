@@ -9,6 +9,7 @@ from discord.ext import commands  # Импортируем команды из �
 from discord.ext.commands import has_permissions
 from discord_slash import SlashCommand, SlashContext  # Импортируем модуль команд с косой чертой (slash)
 # from discord_slash.utils.manage_commands import create_choice, create_option
+from sys import stdout
 
 import config  # Импортируем настройки приложения
 
@@ -24,10 +25,11 @@ slash = SlashCommand(client, sync_commands=True)
 
 # ------------- СОЗДАЁМ ОБРАБОТКУ КОМАНДЫ С КОСОЙ ЧЕРТОЙ ЧЕРЕЗ СОЗДАННОЕ ПРИЛОЖЕНИЕ // КОНЕЦ
 
+logging.basicConfig(level=logging.WARNING,
+                    format='%(asctime)s - %(levelname)s - %(process)d:%(thread)d: %(module)s:%(lineno)d: %(message)s')
 
-# ------------- ВЫВОДИМ ДАННЫЕ ПРДКЛЮЧЕНИЯ ПРИЛОЖЕНИЯ В КОНСОЛЬ
-logging.basicConfig(level=logging.INFO)
-
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 # ------------- ВЫВОДИМ ДАННЫЕ ПРДКЛЮЧЕНИЯ ПРИЛОЖЕНИЯ В КОНСОЛЬ // КОНЕЦ
 
@@ -195,7 +197,7 @@ async def on_command_error(ctx, error):
         return
 
     await ctx.send(str(error), delete_after=13)
-    print(f"{ctx.message.content}: {error}")
+    logger.info(f"{ctx.message.content}: {error}")
 
 
 # ------------- ОБРАБАТЫВАВАЕМ ОШБИКИ КОММАНД // КОНЕЦ
