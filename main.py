@@ -98,6 +98,10 @@ async def on_message(message):
     # Дублирует сообщения в консоль приложения
     print('{0.guild} / #{0.channel} / {0.author}: {0.content}'.format(message))
 
+    # Игнорируем сообщения, отправленные не в забриджованный канал
+    if message.channel.name != config.globalchannel:
+        return
+
     # Пропускает команды для регистрации
     await client.process_commands(message)
 
@@ -111,10 +115,6 @@ async def on_message(message):
 
     # Игнорируем сообщения, отправленные этим приложением
     if message.author.id == client.user.id:
-        return
-
-    # Игнорируем сообщения, отправленные не в забриджованный канал
-    if message.channel.name != config.globalchannel:
         return
 
     # Игнорируем сообщения с упоминанием
