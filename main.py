@@ -36,7 +36,6 @@ logging.basicConfig(level=logging.INFO)
 # ------------- БЫСТЫРЫЙ СКРИПТ НА ОТПРАВКУ СООБЩЕНИЙ
 async def send_to_servers(*args, **kwargs):
     """
-
     :param args:
     :param kwargs:
     :return:
@@ -50,7 +49,8 @@ async def send_to_servers(*args, **kwargs):
                 print(f"System: Невозможно отправить сообщение на сервер {guild.name}: Недостаточно прав")
             except discord.HTTPException as e:
                 print(f"System: Невозможно отправить сообщение на сервер {guild.name}: {e}")
-
+            except Exception as e:
+                print(f"System: Не получилось отправить сообщение на сервер {guild.name}: {e}")
 
 # ------------- БЫСТЫРЫЙ СКРИПТ НА ОТПРАВКУ СООБЩЕНИЙ // КОНЕЦ
 
@@ -63,7 +63,7 @@ async def on_ready():
                                   'default current_timestamp, reason text, banner_id integer);')
 
     print('\n-••••••••••••••••••••••••••••••-')
-    # Показывает имя приложения указанное на discordapp.com
+    # Показывает имя приложения, указанное на discordapp.com
     print(f' APP Username: {client.user} ')
     print(f' Using token {config.token[0:2]}...{config.token[-3:-1]}')
     print(f' Using global channel {config.globalchannel}')
@@ -99,19 +99,18 @@ async def on_message(message):
     # Дублирует сообщения в консоль приложения
     print('{0.guild} / #{0.channel} / {0.author}: {0.content}'.format(message))
 
-
     # Пропускает комманды для регистрации
     await client.process_commands(message)
 
-    # Игнорируем сообщения начинающиеся с преффикса комманд
+    # Игнорируем сообщения, начинающиеся с преффикса комманд
     if message.content.startswith(config.prefix) or client.user.mentioned_in(message):
         return
 
-    # Игнорируем сообщения отправленные другими приложениеми
+    # Игнорируем сообщения, отправленные другими приложениеми
     if message.author.bot:
         return
 
-    # Игнорируем сообщения отправленные этим приложением
+    # Игнорируем сообщения, отправленные этим приложением
     if message.author.id == client.user.id:
         return
 
@@ -200,12 +199,12 @@ async def on_command_error(ctx, error, amount=1):
     print(ctx.message.content, error)
 
 
-# ------------- ОБРАБАТЫВАВЕМ ОШБИКИ КОММАНД // КОНЕЦ
+# ------------- ОБРАБАТЫВАВАЕМ ОШБИКИ КОММАНД // КОНЕЦ
 
 
-# ------------- КОММАНДА ПРОВЕРКА ПРИЛОЖЕНИЯ
+# ------------- КОМАНДА ПРОВЕРКА ПРИЛОЖЕНИЯ
 @slash.slash(name="ping", description="Проверить состояние приложения.", guild_ids=config.guild_ids)
-# Команду может выполнить только владельце приложения
+# Команду может выполнить только владелец приложения
 @commands.is_owner()
 async def ping(ctx, amount=1):
     # Создаём информационное сообщение
@@ -217,10 +216,10 @@ async def ping(ctx, amount=1):
 
 
 @client.command(aliases=['пинг'], brief='Проверить состояние приложения.', pass_context=True)
-# Команду может выполнить только владельце приложения
+# Команду может выполнить только владелец приложения
 @commands.is_owner()
 async def ping(ctx, amount=1):
-    # Удаляем сообщение отправленное пользователем
+    # Удаляем сообщение, отправленное пользователем
     await ctx.channel.purge(limit=amount)
 
     # Создаём информационное сообщение
@@ -236,7 +235,7 @@ async def ping(ctx, amount=1):
 
 # ------------- КОММАНДА ПОМОЩИ
 @slash.slash(name="help", description="Показать информацию о командах используемых приложением.", guild_ids=config.guild_ids)
-# Команду может выполнить только владельце приложения
+# Команду может выполнить только владелец приложения
 @commands.is_owner()
 async def help(ctx, amount=1):
     # Создаём информационное сообщение
@@ -273,7 +272,7 @@ async def information(ctx, amount=1):
     print("".join(guild.name + '\n' for guild in client.guilds))
     # Создаём сообщение
     emInformation = discord.Embed(title='ИНФОРМАЦИЯ',
-                                  description='Приложение создана для обмена текстовыми и файловыми сообщениями между серверами по игре [Elite Dangerous](https://www.elitedangerous.com/). В первую очередь приложение направлено помочь эскадронам с закрытыми серверами, обмениваться сообщениями с другими серверами и для тех серверов и пользователи которых предпочитают находится только на своём сервере по [Elite Dangerous](https://www.elitedangerous.com/). Для остальных же данное приложение может быть не так востребовано, но так как приложение не привязано к какому либо серверу, его можно использовать для серверов другой тематики.\n\nЕсли вы владеете одним из серверов по [Elite Dangerous](https://www.elitedangerous.com/) или связанной тематике и хотите подключить приложение к себе на сервер, воспользуйтесь данной [ссылкой](https://discordapp.com/oauth2/authorize?&client_id=826410895634333718&scope=bot&permissions=0), либо можете на основе исходного кода данного приложения сделать свою сеть обмена сообщениями например по торговле или другой игре.',
+                                  description='Приложение создано для обмена текстовыми и файловыми сообщениями между серверами по игре [Elite Dangerous](https://www.elitedangerous.com/). В первую очередь приложение направлено на помощь эскадронам с закрытыми серверами обмениваться сообщениями с другими серверами и для тех серверов, пользователи которых предпочитают находиться только на своём сервере по [Elite Dangerous](https://www.elitedangerous.com/). Для остальных же данное приложение может быть не так востребовано, но так как приложение не привязано к какому-либо серверу, его можно использовать для серверов другой тематики.\n\nЕсли вы владеете одним из серверов по [Elite Dangerous](https://www.elitedangerous.com/) или связанной тематике и хотите подключить приложение к себе на сервер, воспользуйтесь данной [ссылкой](https://discordapp.com/oauth2/authorize?&client_id=826410895634333718&scope=bot&permissions=0), либо можете на основе исходного кода данного приложения сделать свою сеть обмена сообщениями например по торговле или другой игре.',
                                   colour=0x2F3136)
     emInformation.add_field(name='Разработчики ', value='• <@420130693696323585>\n• <@665018860587450388>')
     emInformation.add_field(name='Благодарности', value='• <@478527700710195203>')
@@ -330,10 +329,11 @@ async def bluadd(ctx, amount=1):
 
 
 # ------------- КОМАНДА ВЫВОДА СПИСКА СЕРВЕРОВ
-@client.command(aliases=['сервера'], brief='Показать список серверов, к которым подключено приложение.', pass_context=True)
+@client.command(aliases=['сервера'], brief='Показать список серверов, к которым подключено приложение.',
+                pass_context=True)
 # Команду может выполнить только владельце приложения
 @commands.is_owner()
-async def serverslist(ctx, amount=1):
+async def servers_list(ctx, amount=1):
     # Удаляем сообщение отправленное пользователем
     await ctx.channel.purge(limit=amount)
     print("".join(guild.name + '\n' for guild in client.guilds))
@@ -357,7 +357,7 @@ async def serverslist(ctx, amount=1):
 @client.command(pass_context=True)
 # Команду может выполнить только владельце приложения
 @commands.is_owner()
-async def serversleave(ctx, id_to_kick: int):
+async def server_leave(ctx, id_to_kick: int):
     if guild_to_leave := client.get_guild(id_to_kick) is None:
         await ctx.send('No guild with such ID')
         return
@@ -368,7 +368,8 @@ async def serversleave(ctx, id_to_kick: int):
 
 
 # ------------- КОМАНДА СОЗДАНИЯ КАНАЛА ДЛЯ ПРИЁМА И ОТПРАВКИ СООБЩЕНИЙ
-@client.command(aliases=['установка', 'подключить'], brief='Создать канала для приёма и передачи сообщений.', pass_context=True)
+@client.command(aliases=['установка', 'подключить'], brief='Создать канала для приёма и передачи сообщений.',
+                pass_context=True)
 # Команду может выполнить только пользователяь с ролью администратор
 @has_permissions(administrator=True)
 async def setup(ctx, amount=1):
