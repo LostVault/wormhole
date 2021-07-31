@@ -284,6 +284,7 @@ async def information(ctx):
 
 @client.command(aliases=['информация', 'инфо', 'авторы'], brief='Показать информацию о приложение.', pass_context=True)
 async def information(ctx):
+    await ctx.message.delete()
     await common_information(ctx)
 
 # ------------- КОМАНДА ОТОБРАЖЕНИЯ ИФОРМАЦИИ О ПРИЛОЖЕНИЕ // КОНЕЦ
