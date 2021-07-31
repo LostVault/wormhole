@@ -314,28 +314,33 @@ async def information(ctx):
 
 
 # ------------- КОМАНДА УДАЛЕНИЯ СООБЩЕНИЙ НА КАНАЛЕ
-@client.command(aliases=['добавить'], brief='Записать пользователя в чёрный список.', pass_context=True)
-# Команду может выполнить только владелец приложения
-@commands.is_owner()
-async def bluadd(ctx, amount=1):
-    userid_to_ban = ctx.message.content.split(' ')[1]
-    await ctx.message.delete()
-    try:
-        userid_to_ban = int(userid_to_ban)
-    except ValueError:
-        await ctx.channel.send('Для блокировки пользователя необходимо указать ID пользователя')
-        return
-    await client.sql_conn.execute('insert into black_list (userid) values (?);', [userid_to_ban])
+async def common_bluadd(ctx, userid: int):
+
+    await client.sql_conn.execute('insert into black_list (userid) values (?);', [userid])
     await client.sql_conn.commit()
 
     # Создаём информационное сообщение
-    emBlackListAdd = discord.Embed(title='⚠ • ВНИМАНИЕ!', description='Пользователь с ID ' + str(userid_to_ban) +
-                                                                      ' записан в чёрный список.', color=0xd40000)
+    emBlackListAdd = discord.Embed(
+        title='⚠ • ВНИМАНИЕ!',
+        description=f'Пользователь с ID {userid} записан в чёрный список.',
+        color=0xd40000)
     # Отправляем информационное сообщение и удаляем его через 13 секунд
     await ctx.send(embed=emBlackListAdd, delete_after=13)
-    # Отправляем сообщение - Обычное
-    # await ctx.channel.send(f'` ⚠ • ВНИМАНИЕ! ` Пользователь с ID {userid_to_ban} внесён в чёрный список.')
 
+
+@client.command(aliases=['добавить'], brief='Записать пользователя в чёрный список.', pass_context=True)
+# Команду может выполнить только владелец приложения
+@commands.is_owner()
+async def bluadd(ctx, userid: int):
+    await ctx.message.delete()
+    await common_bluadd(ctx, userid)
+
+
+@slash.slash(name="ban", description="ban",
+             guild_ids=[guild.id for guild in client.guilds])
+@commands.is_owner()
+async def bluadd(ctx, userid: int):
+    await common_bluadd(ctx, userid)
 
 # ------------- КОМАНДА УДАЛЕНИЯ СООБЩЕНИЙ НА КАНАЛЕ // КОНЕЦ
 
