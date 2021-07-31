@@ -165,10 +165,10 @@ async def on_message(message):
 
 # ------------- ОБРАБАТЫВАВЕМ ОШИБКИ КОММАНД
 @client.event
-async def on_command_error(ctx, error, amount=1):
+async def on_command_error(ctx, error):
+    await ctx.message.delete()
     if isinstance(error, commands.CommandNotFound):
-        # Удаляем сообщение отправленное пользователем
-        await ctx.channel.purge(limit=amount)
+
         # Создаём сообщение
         embedcommandnotfound = discord.Embed(title='ВНИМАНИЕ!',
                                              description='' + ctx.author.mention + ', к сожалению, команды **'
@@ -179,9 +179,8 @@ async def on_command_error(ctx, error, amount=1):
         # Отправляем сообщение и удаляем его через 13 секунд
         await ctx.send(embed=embedcommandnotfound, delete_after=13)
         return
+
     if isinstance(error, commands.MissingPermissions):
-        # Удаляем сообщение отправленное пользователем
-        await ctx.channel.purge(limit=amount)
 
         # Создаём информационное сообщение
         embedcommandMissingPermissions = discord.Embed(title='ВНИМАНИЕ!',
@@ -194,7 +193,9 @@ async def on_command_error(ctx, error, amount=1):
         # Отправляем информационное сообщение и удаляем его через 13 секунд
         await ctx.send(embed=embedcommandMissingPermissions, delete_after=13)
         return
-    print(ctx.message.content, error)
+
+    await ctx.send(str(error), delete_after=13)
+    print(f"{ctx.message.content}: {error}")
 
 
 # ------------- ОБРАБАТЫВАВАЕМ ОШБИКИ КОММАНД // КОНЕЦ
