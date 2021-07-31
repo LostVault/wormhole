@@ -202,34 +202,31 @@ async def on_command_error(ctx, error, amount=1):
 
 
 # ------------- КОМАНДА ПРОВЕРКА ПРИЛОЖЕНИЯ
-@slash.slash(name="ping", description="Проверить состояние приложения.", guild_ids=config.guild_ids)
-# Команду может выполнить только владелец приложения
-@commands.is_owner()
-async def ping(ctx, amount=1):
+async def common_ping(ctx):
     # Создаём информационное сообщение
     emPing = discord.Embed(title='⚠ • ВНИМАНИЕ!', description='Получен ответ.', colour=0x90D400)
     # Отправляем информационное сообщение и удаляем его через 13 секунд
     await ctx.send(embed=emPing, delete_after=13)
     # Отправляем сообщение - Обычное
     # await ctx.send(f'` **{ctx.author.name}** ` Pong! ({client.latency * 1000}ms)', delete_after=13)
+
+
+@slash.slash(name="ping", description="Проверить состояние приложения.",
+             guild_ids=[guild.id for guild in client.guilds])
+# Команду может выполнить только владелец приложения
+@commands.is_owner()
+async def ping(ctx):
+    await common_ping(ctx)
 
 
 @client.command(aliases=['пинг'], brief='Проверить состояние приложения.', pass_context=True)
 # Команду может выполнить только владелец приложения
 @commands.is_owner()
-async def ping(ctx, amount=1):
-    # Удаляем сообщение, отправленное пользователем
-    await ctx.channel.purge(limit=amount)
+async def ping(ctx):
+    await ctx.message.delete()
+    await common_ping(ctx)
 
-    # Создаём информационное сообщение
-    emPing = discord.Embed(title='⚠ • ВНИМАНИЕ!', description='Получен ответ.', colour=0x90D400)
-    # Отправляем информационное сообщение и удаляем его через 13 секунд
-    await ctx.send(embed=emPing, delete_after=13)
-    # Отправляем сообщение - Обычное
-    # await ctx.send(f'` **{ctx.author.name}** ` Pong! ({client.latency * 1000}ms)', delete_after=13)
-
-
-# ------------- КОММАНДА ПРОВЕРКА ПРИЛОЖЕНИЯ // КОНЕЦ
+# ------------- КОМАНДА ПРОВЕРКА ПРИЛОЖЕНИЯ // КОНЕЦ
 
 
 # ------------- КОММАНДА ПОМОЩИ
