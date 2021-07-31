@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # ------------- ИМПОРТ МОДУЛЕЙ
 
 import logging  # Импортируем модуль логирования
@@ -69,11 +70,8 @@ async def on_ready():
     print(f' Using global channel {config.globalchannel}')
     # Показывает ID приложения указанное на discordapp.com
     print(' APP Client ID: {0.user.id} '.format(client))
-    print(
-        'Link for connection: https://discordapp.com/oauth2/authorize?&client_id={'
-        '0.user.id}&permissions=0&scope=bot%20applications.commands '
-        '=bot&permissions=0'.format(
-            client))
+    print('Link for connection: https://discordapp.com/oauth2/authorize?&client_id={0.user.id}'
+          '&permissions=0&scope=bot%20applications.commands=bot&permissions=0'.format(client))
     print('-••••••••••••••••••••••••••••••-')
     # Выводит список серверов, к которым подключено приложение
     print('Servers connected to:')
@@ -235,7 +233,7 @@ async def ping(ctx, amount=1):
 
 
 # ------------- КОММАНДА ПОМОЩИ
-@slash.slash(name="help", description="Показать информацию о командах используемых приложением.", guild_ids=config.guild_ids)
+@slash.slash(name="help", description="Показать информацию о командах используемых приложением.", guild_ids=[])
 # Команду может выполнить только владелец приложения
 @commands.is_owner()
 async def help(ctx, amount=1):
@@ -250,13 +248,28 @@ async def help(ctx, amount=1):
 # ------------- КОММАНДА ПОМОЩИ // КОНЕЦ
 
 
-# ------------- КОМАНДА ОТОБРАЖЕНИЯ ИФОРМАЦИИ О ПРИЛОЖЕНИЕ
-@slash.slash(name="information", description="Показать информацию о приложение.", guild_ids=config.guild_ids)
-async def information(ctx, amount=1):
-    print("".join(guild.name + '\n' for guild in client.guilds))
+# ------------- КОМАНДА ОТОБРАЖЕНИЯ ИНФОРМАЦИИ О ПРИЛОЖЕНИИ
+
+async def common_information(ctx):
     # Создаём сообщение
     emInformation = discord.Embed(title='ИНФОРМАЦИЯ',
-                                  description='Приложение создана для обмена текстовыми и файловыми сообщениями между серверами по игре [Elite Dangerous](https://www.elitedangerous.com/). В первую очередь приложение направлено помочь эскадронам с закрытыми серверами, обмениваться сообщениями с другими серверами и для тех серверов и пользователи которых предпочитают находится только на своём сервере по [Elite Dangerous](https://www.elitedangerous.com/). Для остальных же данное приложение может быть не так востребовано, но так как приложение не привязано к какому либо серверу, его можно использовать для серверов другой тематики.\n\nЕсли вы владеете одним из серверов по [Elite Dangerous](https://www.elitedangerous.com/) или связанной тематике и хотите подключить приложение к себе на сервер, воспользуйтесь данной [ссылкой](https://discordapp.com/oauth2/authorize?&client_id=826410895634333718&scope=bot&permissions=0), либо можете на основе исходного кода данного приложения сделать свою сеть обмена сообщениями например по торговле или другой игре.',
+                                  description='Приложение создано для обмена текстовыми и файловыми сообщениями между '
+                                              'серверами по игре [Elite Dangerous](https://www.elitedangerous.com/). '
+                                              'В первую очередь приложение направлено помочь эскадронам с закрытыми '
+                                              'серверами, обмениваться сообщениями с другими серверами и для тех '
+                                              'серверов и пользователи которых предпочитают находится только на своём '
+                                              'сервере по [Elite Dangerous](https://www.elitedangerous.com/). Для '
+                                              'остальных же данное приложение может быть не так востребовано, '
+                                              'но так как приложение не привязано к какому либо серверу, '
+                                              'его можно использовать для серверов другой тематики.\n\nЕсли вы '
+                                              'владеете одним из серверов по [Elite Dangerous]('
+                                              'https://www.elitedangerous.com/) или связанной тематике и хотите '
+                                              'подключить приложение к себе на сервер, воспользуйтесь данной ['
+                                              'ссылкой]('
+                                              'https://discordapp.com/oauth2/authorize?&client_id=826410895634333718'
+                                              '&scope=bot&permissions=0), либо можете на основе исходного кода '
+                                              'данного приложения сделать свою сеть обмена сообщениями например по '
+                                              'торговле или другой игре.',
                                   colour=0x2F3136)
     emInformation.add_field(name='Разработчики ', value='• <@420130693696323585>\n• <@665018860587450388>')
     emInformation.add_field(name='Благодарности', value='• <@478527700710195203>')
@@ -264,41 +277,22 @@ async def information(ctx, amount=1):
     emInformation.set_footer(text=client.user.name)
     # Отправляем сообщение и удаляем его через 60 секунд
     await ctx.send(embed=emInformation, delete_after=60)
+
+
+@slash.slash(name="information", description="Показать информацию о приложение.",
+             guild_ids=[guild.id for guild in client.guilds])
+async def information(ctx):
+    await common_information(ctx)
 
 
 @client.command(aliases=['информация', 'инфо', 'авторы'], brief='Показать информацию о приложение.', pass_context=True)
-async def information(ctx, amount=1):
-    # Удаляем сообщение отправленное пользователем
-    await ctx.channel.purge(limit=amount)
-    print("".join(guild.name + '\n' for guild in client.guilds))
-    # Создаём сообщение
-    emInformation = discord.Embed(title='ИНФОРМАЦИЯ',
-                                  description='Приложение создано для обмена текстовыми и файловыми сообщениями между серверами по игре [Elite Dangerous](https://www.elitedangerous.com/). В первую очередь приложение направлено на помощь эскадронам с закрытыми серверами обмениваться сообщениями с другими серверами и для тех серверов, пользователи которых предпочитают находиться только на своём сервере по [Elite Dangerous](https://www.elitedangerous.com/). Для остальных же данное приложение может быть не так востребовано, но так как приложение не привязано к какому-либо серверу, его можно использовать для серверов другой тематики.\n\nЕсли вы владеете одним из серверов по [Elite Dangerous](https://www.elitedangerous.com/) или связанной тематике и хотите подключить приложение к себе на сервер, воспользуйтесь данной [ссылкой](https://discordapp.com/oauth2/authorize?&client_id=826410895634333718&scope=bot&permissions=0), либо можете на основе исходного кода данного приложения сделать свою сеть обмена сообщениями например по торговле или другой игре.',
-                                  colour=0x2F3136)
-    emInformation.add_field(name='Разработчики ', value='• <@420130693696323585>\n• <@665018860587450388>')
-    emInformation.add_field(name='Благодарности', value='• <@478527700710195203>')
-    # emInformation.add_field(name='Список серверов', value="".join(guild.name + '\n' for guild in client.guilds))
-    emInformation.set_footer(text=client.user.name)
-    # Отправляем сообщение и удаляем его через 60 секунд
-    await ctx.send(embed=emInformation, delete_after=60)
-
+async def information(ctx):
+    await common_information(ctx)
 
 # ------------- КОМАНДА ОТОБРАЖЕНИЯ ИФОРМАЦИИ О ПРИЛОЖЕНИЕ // КОНЕЦ
 
 
 # ------------- КОМАНДА УДАЛЕНИЯ СООБЩЕНИЙ НА КАНАЛЕ
-@client.command(aliases=['очистить'], brief='Удалить сто последних сообщений на канале.', pass_context=True)
-# Команду может выполнить только пользователь, с ролью администратор
-@has_permissions(administrator=True)
-async def clear(ctx, amount=100):
-    # Удаляем сто последних сообщений на канале
-    await ctx.channel.purge(limit=amount)
-
-
-# ------------- КОМАНДА УДАЛЕНИЯ СООБЩЕНИЙ НА КАНАЛЕ // КОНЕЦ
-
-
-# ------------- КОМАНДА ЗАПИСИ ПОЛЬЗОВАТЕЛЯ В ЧЁРНЫЙ СПИСОК
 @client.command(aliases=['добавить'], brief='Записать пользователя в чёрный список.', pass_context=True)
 # Команду может выполнить только владелец приложения
 @commands.is_owner()
@@ -320,6 +314,18 @@ async def bluadd(ctx, amount=1):
     await ctx.send(embed=emBlackListAdd, delete_after=13)
     # Отправляем сообщение - Обычное
     # await ctx.channel.send(f'` ⚠ • ВНИМАНИЕ! ` Пользователь с ID {userid_to_ban} внесён в чёрный список.')
+
+
+# ------------- КОМАНДА УДАЛЕНИЯ СООБЩЕНИЙ НА КАНАЛЕ // КОНЕЦ
+
+
+# ------------- КОМАНДА ЗАПИСИ ПОЛЬЗОВАТЕЛЯ В ЧЁРНЫЙ СПИСОК
+@client.command(aliases=['очистить'], brief='Удалить сто последних сообщений на канале.', pass_context=True)
+# Команду может выполнить только пользователь, с ролью администратор
+@has_permissions(administrator=True)
+async def clear(ctx, amount=100):
+    # Удаляем сто последних сообщений на канале
+    await ctx.channel.purge(limit=amount)
 
 
 # ------------- КОМАНДА ЗАПИСИ ПОЛЬЗОВАТЕЛЯ В ЧЁРНЫЙ СПИСОК // КОНЕЦ
