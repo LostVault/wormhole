@@ -37,10 +37,10 @@ logger.setLevel(logging.INFO)
 # ------------- БЫСТЫРЫЙ СКРИПТ НА ОТПРАВКУ СООБЩЕНИЙ
 async def send_to_servers(*args, **kwargs):
     """
+    send message to all connected servers to config.globalchannel channel, arguments as for channel.send()
     :param args:
     :param kwargs:
     :return:
-    send message to all connected servers to config.globalchannel channel, arguments as for channel.send()
     """
     for guild in client.guilds:
         if channel := discord.utils.get(guild.text_channels, name=config.globalchannel):
