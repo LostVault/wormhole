@@ -9,7 +9,7 @@ from discord.ext import commands  # Импортируем команды из �
 from discord.ext.commands import has_permissions
 from discord_slash import SlashCommand, SlashContext  # Импортируем модуль команд с косой чертой (slash)
 # from discord_slash.utils.manage_commands import create_choice, create_option
-from sys import stdout
+from sys import stdout # Импортируем модуль для регистрации событий приложения
 
 import config  # Импортируем настройки приложения
 
