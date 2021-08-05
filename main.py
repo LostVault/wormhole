@@ -39,7 +39,7 @@ logger.setLevel(logging.INFO)
 # ------------- РЕГИСТРИРУЕМ СОБЫТИЯ ПРИЛОЖЕНИЯ // КОНЕЦ
 
 
-# ------------- БЫСТЫРЫЙ СКРИПТ НА ОТПРАВКУ СООБЩЕНИЙ
+# ------------- КОРУТИНА ДЛЯ ПЕРЕСЫЛКИ СООБЩЕНИЯ НА ВСЕ СЕРВЕРА
 async def send_to_servers(*args, **kwargs):
     """
     send message to all connected servers to config.globalchannel channel, arguments as for channel.send()
@@ -57,7 +57,6 @@ async def send_to_servers(*args, **kwargs):
                 print(f"System: Невозможно отправить сообщение на сервер {guild.name}: {e}")
             except Exception as e:
                 print(f"System: Не получилось отправить сообщение на сервер {guild.name}: {e}")
-
 
 # ------------- БЫСТЫРЫЙ СКРИПТ НА ОТПРАВКУ СООБЩЕНИЙ // КОНЕЦ
 
@@ -107,9 +106,6 @@ async def on_message(message):
     # Игнорируем сообщения, отправленные не в забриджованный канал
     if message.channel.name != config.globalchannel:
         return
-
-    # Пропускает команды для регистрации
-    await client.process_commands(message)
 
     # Игнорируем сообщения, начинающиеся с префикса команд
     if message.content.startswith(config.prefix) or client.user.mentioned_in(message):
@@ -168,79 +164,29 @@ async def on_message(message):
     # Отправляем сообщение
     await send_to_servers(embed=emGlobalMessage)
 
-
 # ------------- ВЫВОДИМ СООБЩЕНИЯ ПОЛЬЗОВАТЕЛЕЙ В КОНСОЛЬ ПРИЛОЖЕНИЯ И ПЕРЕНАПРАВЛЯЕМ НА ДРУГИЕ СЕРВЕРА // КОНЕЦ
 
 
-# ------------- ОБРАБАТЫВАВЕМ ОШИБКИ КОММАНД
-@client.event
-async def on_command_error(ctx, error):
-    await ctx.message.delete()
-    if isinstance(error, commands.CommandNotFound):
-
-        # Создаём сообщение
-        embedcommandnotfound = discord.Embed(title='ВНИМАНИЕ!',
-                                             description='' + ctx.author.mention + ', к сожалению, команды **'
-                                                         + ctx.message.content + '** не существует.',
-                                             color=0xd40000)
-        embedcommandnotfound.set_footer(icon_url=ctx.author.avatar_url,
-                                        text='Vox Galactica // Сообщение удалится через 13 секунд.')
-        # Отправляем сообщение и удаляем его через 13 секунд
-        await ctx.send(embed=embedcommandnotfound, delete_after=13)
-        return
-
-    if isinstance(error, commands.MissingPermissions):
-
-        # Создаём информационное сообщение
-        embedcommandMissingPermissions = discord.Embed(title='ВНИМАНИЕ!',
-                                                       description='' + ctx.author.mention
-                                                                   + ', к сожалению, у вас нет прав на команду **'
-                                                                   + ctx.message.content + '',
-                                                       color=0xd40000)
-        embedcommandMissingPermissions.set_footer(icon_url=ctx.author.avatar_url,
-                                                  text='Vox Galactica // Сообщение удалится через 13 секунд.')
-        # Отправляем информационное сообщение и удаляем его через 13 секунд
-        await ctx.send(embed=embedcommandMissingPermissions, delete_after=13)
-        return
-
-    await ctx.send(str(error), delete_after=13)
-    logger.info(f"{ctx.message.content}: {error}")
-
-
-# ------------- ОБРАБАТЫВАВАЕМ ОШБИКИ КОММАНД // КОНЕЦ
-
-
 # ------------- КОМАНДА ПРОВЕРКА ПРИЛОЖЕНИЯ
-async def common_ping(ctx):
+@slash.slash(name="ping",
+             description="Проверить состояние приложения.",
+             guild_ids=[guild.id for guild in client.guilds])
+# Команду может выполнить только владелец приложения
+# @commands.is_owner()
+async def ping(ctx):
     # Создаём информационное сообщение
     emPing = discord.Embed(title='⚠ • ВНИМАНИЕ!', description='Получен ответ.', colour=0x90D400)
     # Отправляем информационное сообщение и удаляем его через 13 секунд
     await ctx.send(embed=emPing, delete_after=13)
-    # Отправляем сообщение - Обычное
-    # await ctx.send(f'` **{ctx.author.name}** ` Pong! ({client.latency * 1000}ms)', delete_after=13)
-
-
-@slash.slash(name="ping", description="Проверить состояние приложения.",
-             guild_ids=[guild.id for guild in client.guilds])
-# Команду может выполнить только владелец приложения
-@commands.is_owner()
-async def ping(ctx):
-    await common_ping(ctx)
-
-
-@client.command(aliases=['пинг'], brief='Проверить состояние приложения.', pass_context=True)
-# Команду может выполнить только владелец приложения
-@commands.is_owner()
-async def ping(ctx):
-    await ctx.message.delete()
-    await common_ping(ctx)
-
 
 # ------------- КОМАНДА ПРОВЕРКА ПРИЛОЖЕНИЯ // КОНЕЦ
 
 
 # ------------- КОМАНДА ПОМОЩИ
-async def common_help(ctx):
+@slash.slash(name="help",
+             description="Показать информацию о командах используемых приложением.",
+             guild_ids=[guild.id for guild in client.guilds])
+async def help_(ctx):
     # Создаём информационное сообщение
     emHelp = discord.Embed(
         title='ПОМОЩЬ',
@@ -260,25 +206,14 @@ async def common_help(ctx):
     # Отправляем информационное сообщение и удаляем его через 13 секунд
     await ctx.send(embed=emHelp, delete_after=60)
 
-
-@slash.slash(name="help", description="Показать информацию о командах используемых приложением.",
-             guild_ids=[guild.id for guild in client.guilds])
-# Команду может выполнить только владелец приложения
-@commands.is_owner()
-async def help(ctx):
-    await common_help(ctx)
-
-
-@client.command(name='help', brief='Проверить состояние приложения.', pass_context=True)
-async def help(ctx):
-    await ctx.message.delete()
-    await common_help(ctx)
 # ------------- КОММАНДА ПОМОЩИ // КОНЕЦ
 
 
 # ------------- КОМАНДА ОТОБРАЖЕНИЯ ИНФОРМАЦИИ О ПРИЛОЖЕНИИ
-
-async def common_information(ctx):
+@slash.slash(name="information",
+             description="Показать информацию о приложение.",
+             guild_ids=[guild.id for guild in client.guilds])
+async def information(ctx):
     # Создаём сообщение
     emInformation = discord.Embed(title='ИНФОРМАЦИЯ',
                                   description='Приложение создано для обмена текстовыми и файловыми сообщениями между '
@@ -306,24 +241,15 @@ async def common_information(ctx):
     # Отправляем сообщение и удаляем его через 60 секунд
     await ctx.send(embed=emInformation, delete_after=60)
 
-
-@slash.slash(name="information", description="Показать информацию о приложение.",
-             guild_ids=[guild.id for guild in client.guilds])
-async def information(ctx):
-    await common_information(ctx)
-
-
-@client.command(aliases=['информация', 'инфо', 'авторы'], brief='Показать информацию о приложение.', pass_context=True)
-async def information(ctx):
-    await ctx.message.delete()
-    await common_information(ctx)
-
-
 # ------------- КОМАНДА ОТОБРАЖЕНИЯ ИФОРМАЦИИ О ПРИЛОЖЕНИЕ // КОНЕЦ
 
 
-# ------------- КОМАНДА УДАЛЕНИЯ СООБЩЕНИЙ НА КАНАЛЕ
-async def common_bluadd(ctx, userid: int):
+# ------------- КОМАНДА ЗАПИСИ ПОЛЬЗОВАТЕЛЯ В ЧЁРНЫЙ СПИСОК
+@slash.slash(name="ban",
+             description="ban",
+             guild_ids=[guild.id for guild in client.guilds])
+@commands.is_owner()
+async def bluadd(ctx, userid: int):
 
     await client.sql_conn.execute('insert into black_list (userid) values (?);', [userid])
     await client.sql_conn.commit()
@@ -336,54 +262,23 @@ async def common_bluadd(ctx, userid: int):
     # Отправляем информационное сообщение и удаляем его через 13 секунд
     await ctx.send(embed=emBlackListAdd, delete_after=13)
 
-
-@client.command(aliases=['добавить'], brief='Записать пользователя в чёрный список.', pass_context=True)
-# Команду может выполнить только владелец приложения
-@commands.is_owner()
-async def bluadd(ctx, userid: int):
-    await ctx.message.delete()
-    await common_bluadd(ctx, userid)
-
-
-@slash.slash(name="ban", description="ban",
-             guild_ids=[guild.id for guild in client.guilds])
-@commands.is_owner()
-async def bluadd(ctx, userid: int):
-    await common_bluadd(ctx, userid)
-
-# ------------- КОМАНДА УДАЛЕНИЯ СООБЩЕНИЙ НА КАНАЛЕ // КОНЕЦ
-
-
-# ------------- КОМАНДА ЗАПИСИ ПОЛЬЗОВАТЕЛЯ В ЧЁРНЫЙ СПИСОК
-@client.command(aliases=['очистить'], brief='Удалить сто последних сообщений на канале.', pass_context=True)
-# Команду может выполнить только пользователь, с ролью администратор
-@has_permissions(administrator=True)
-async def clear(ctx, amount=100):
-    # Удаляем сто последних сообщений на канале
-    await ctx.channel.purge(limit=amount)
-
-
 # ------------- КОМАНДА ЗАПИСИ ПОЛЬЗОВАТЕЛЯ В ЧЁРНЫЙ СПИСОК // КОНЕЦ
 
 
-# ------------- КОМАНДА УДАЛЕНИЯ ПОЛЬЗОВАТЕЛЯ ИЗ ЧЁРНОГО СПИСКА
-# ------------- КОМАНДА УДАЛЕНИЯ ПОЛЬЗОВАТЕЛЯ ИЗ ЧЁРНОГО СПИСКА // КОНЕЦ
-
-
 # ------------- КОМАНДА ВЫВОДА СПИСКА СЕРВЕРОВ
-@client.command(aliases=['сервера'], brief='Показать список серверов, к которым подключено приложение.',
-                pass_context=True)
+@slash.slash(name="servers_list",
+             description="Вывести список серверов, где присутствует бот",
+             guild_ids=[guild.id for guild in client.guilds])
 # Команду может выполнить только владелец приложения
 @commands.is_owner()
-async def servers_list(ctx, amount=1):
+async def servers_list(ctx):
     # Удаляем сообщение, отправленное пользователем
-    await ctx.channel.purge(limit=amount)
+    await ctx.message.delete()
     print("".join(guild.name + '\n' for guild in client.guilds))
     # Создаём сообщение
     emServers = discord.Embed(title='СПИСОК СЕРВЕРОВ',
                               description='Список серверов, к которым подключено приложение.',
                               colour=0x2F3136)
-
     emServers.add_field(
         name='Список серверов',
         value="".join(guild.name + f' (ID:{guild.id})\n' for guild in client.guilds))
@@ -391,35 +286,36 @@ async def servers_list(ctx, amount=1):
     # Отправляем сообщение и удаляем его через 60 секунд
     await ctx.send(embed=emServers, delete_after=60)
 
-
 # ------------- КОМАНДА ВЫВОДА СПИСКА СЕРВЕРОВ // КОНЕЦ
 
 
 # ------------- КОМАНДА ОТКЛЮЧЕНИЯ ПРИЛОЖЕНИЯ ОТ СЕРВЕРА
-@client.command(pass_context=True)
+@slash.slash(name="server_leave",
+             description="Покинуть сервер",
+             guild_ids=[guild.id for guild in client.guilds])
 # Команду может выполнить только владелец приложения
 @commands.is_owner()
-async def server_leave(ctx, id_to_kick: int):
-    if guild_to_leave := client.get_guild(id_to_kick) is None:
+async def server_leave(ctx, id_to_leave: int):
+    if guild_to_leave := client.get_guild(id_to_leave) is None:
         await ctx.send('No guild with such ID')
         return
     await guild_to_leave.leave()
-
 
 # ------------- КОМАНДА ОТКЛЮЧЕНИЯ ПРИЛОЖЕНИЯ ОТ СЕРВЕРА // КОНЕЦ
 
 
 # ------------- КОМАНДА СОЗДАНИЯ КАНАЛА ДЛЯ ПРИЁМА И ОТПРАВКИ СООБЩЕНИЙ
-@client.command(aliases=['установка', 'подключить'], brief='Создать канала для приёма и передачи сообщений.',
-                pass_context=True)
+# @slash.slash(name="setup",
+#             description="Создать канала для приёма и передачи сообщений",
+#             guild_ids=[guild.id for guild in client.guilds])
 # Команду может выполнить только пользователь, с ролью администратор
-@has_permissions(administrator=True)
-async def setup(ctx, amount=1):
-    # Удаляем сообщение, отправленное пользователем
-    await ctx.channel.purge(limit=amount)
-    # Создаём канал
-    guild = ctx.message.guild
-    await guild.create_text_channel(name='wormhole')
+# @has_permissions(administrator=True)
+# async def setup(ctx):
+#    # Удаляем сообщение, отправленное пользователем
+#    await ctx.message.delete()
+#    # Создаём канал
+#    guild = ctx.message.guild
+#    await guild.create_text_channel(name='wormhole')
 
 
 # ------------- КОМАНДА СОЗДАНИЯ КАНАЛА ДЛЯ ПРИЁМА И ОТПРАВКИ СООБЩЕНИЙ // КОНЕЦ
