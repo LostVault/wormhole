@@ -9,7 +9,7 @@ from discord.ext import commands  # Импортируем команды из �
 from discord.ext.commands import has_permissions
 from discord_slash import SlashCommand, SlashContext  # Импортируем модуль команд с косой чертой (slash)
 # from discord_slash.utils.manage_commands import create_choice, create_option
-from sys import stdout # Импортируем модуль для регистрации событий приложения
+from sys import stdout  # Импортируем модуль для регистрации событий приложения
 
 import config  # Импортируем настройки приложения
 
@@ -148,12 +148,6 @@ async def on_message(message):
                 message), delete_after=13)
         return
 
-    # Удаляем сообщение, отправленное пользователем
-    try:
-        await message.delete()
-    except Exception:
-        pass
-
     # Создаём сообщение
     emGlobalMessage = discord.Embed(description=f" **{message.author.name}**: {message.content}", colour=0x2F3136)
     emGlobalMessage.set_footer(icon_url=message.guild.icon_url,
@@ -162,6 +156,14 @@ async def on_message(message):
     for attachment in message.attachments:
         if attachment.filename.endswith(('bmp', 'jpeg', 'jpg', 'png', 'gif')):
             emGlobalMessage.set_image(url=attachment.url)
+        else:
+            await message.delete()
+            await message.channel.send('К пересылке допускаются только файлы с расширениями bmp, jpeg, jpg, png, gif',
+                                       delete_after=13)
+            return
+
+    # Удаляем сообщение, отправленное пользователем
+    await message.delete()
 
     # Отправляем сообщение
     await send_to_servers(embed=emGlobalMessage)
