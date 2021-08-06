@@ -103,19 +103,22 @@ async def on_ready():
 # ------------- ВЫВОДИМ ДАННЫЕ ПРИЛОЖЕНИЯ ПРИ ПОДКЛЮЧЕНИЕ В КОНСОЛЬ // КОНЕЦ
 
 
-# ------------- РЕГИСТРИРУЕМ ОШИБКИ КОМАНД С КОСОЙ ЧЕРТОЙ
+# ------------- РЕГИСТРИРУЕМ ОШИБКИ КОМАНД С КОСОЙ ЧЕРТОЙ И СООБЩАЕМ ОБ ЭТОМ ПОЛЬЗОВАТЕЛЯМ
 @client.event
 async def on_slash_command_error(ctx, error):
     logger.warning(
         f"An error occurred: {ctx.guild} / {ctx.author} / command: {ctx.name}; Error: {error}")
     if isinstance(error, discord.ext.commands.NotOwner):
-        await ctx.send('Выполнение этой команды доступно только владельцу приложения', delete_after=13)
+        # Создаём информационное сообщение
+        emSlashErrorNotOwner = discord.Embed(title='ВНИМАНИЕ!', description=ctx.author.mention + ', выполнение этой команды доступно только владельцу приложения', color=0xd40000)
+        # Отправляем информационное сообщение и удаляем его через 13 секунд
+        await ctx.send(embed=emSlashErrorNotOwner, delete_after=13)
         return
 
     await ctx.send(str(error), delete_after=13)
 
 
-# ------------- РЕГИСТРИРУЕМ ОШИБКИ КОМАНД С КОСОЙ ЧЕРТОЙ // КОНЕЦ
+# ------------- РЕГИСТРИРУЕМ ОШИБКИ КОМАНД С КОСОЙ ЧЕРТОЙ И СООБЩАЕМ ОБ ЭТОМ ПОЛЬЗОВАТЕЛЯМ // КОНЕЦ
 
 
 # ------------- РЕГИСТРИРУЕМ КОМАНДЫ С КОСОЙ ЧЕРТОЙ
