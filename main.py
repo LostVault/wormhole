@@ -20,10 +20,8 @@ import config  # Импортируем настройки приложения
 client = commands.Bot(description="Test bot", command_prefix=commands.when_mentioned_or(config.prefix),
                       case_insensitive=True, help_command=None)
 
-
 # ------------- СОЗДАЁМ ОБРАБОТКУ КОМАНДЫ С КОСОЙ ЧЕРТОЙ ЧЕРЕЗ СОЗДАННОЕ ПРИЛОЖЕНИЕ
 slash = SlashCommand(client, sync_commands=True)
-
 
 # ------------- СОЗДАЁМ ОБРАБОТКУ КОМАНДЫ С КОСОЙ ЧЕРТОЙ ЧЕРЕЗ СОЗДАННОЕ ПРИЛОЖЕНИЕ // КОНЕЦ
 
@@ -58,7 +56,15 @@ async def send_to_servers(*args, **kwargs):
             except Exception as e:
                 print(f"System: Не получилось отправить сообщение на сервер {guild.name}: {e}")
 
+
 # ------------- БЫСТЫРЫЙ СКРИПТ НА ОТПРАВКУ СООБЩЕНИЙ // КОНЕЦ
+
+
+def guild_ids_for_slash():
+    if config.environment_type == 'prod':
+        return None
+    else:
+        return [guild.id for guild in client.guilds]
 
 
 # ------------- ВЫВОДИМ ДАННЫЕ ПРИЛОЖЕНИЯ ПРИ ПОДКЛЮЧЕНИЕ В КОНСОЛЬ
@@ -68,21 +74,20 @@ async def on_ready():
     await client.sql_conn.execute('create table if not exists black_list (userid integer not null, add_timestamp text '
                                   'default current_timestamp, reason text, banner_id integer);')
 
-    print('\n-••••••••••••••••••••••••••••••-')
     # Показывает имя приложения, указанное на discordapp.com
-    print(f' APP Username: {client.user} ')
-    print(f' Using token {config.token[0:2]}...{config.token[-3:-1]}')
-    print(f' Using global channel {config.globalchannel}')
+    logger.info(f'APP Username: {client.user} ')
+    logger.info(f'Using token {config.token[0:2]}...{config.token[-3:-1]}')
+    logger.info(f'Current env type: {config.environment_type}')
+    logger.info(f'Using global channel {config.globalchannel}')
+
     # Показывает ID приложения указанное на discordapp.com
-    print(' APP Client ID: {0.user.id} '.format(client))
-    print('Link for connection: https://discordapp.com/oauth2/authorize?&client_id={0.user.id}'
-          '&permissions=0&scope=bot%20applications.commands=bot&permissions=0'.format(client))
-    print('-••••••••••••••••••••••••••••••-')
+    logger.info('APP Client ID: {0.user.id} '.format(client))
+    logger.info('Link for connection: https://discordapp.com/oauth2/authorize?&client_id={0.user.id}'
+                '&permissions=0&scope=bot%20applications.commands=bot&permissions=0'.format(client))
+
     # Выводит список серверов, к которым подключено приложение
-    print('Servers connected to:')
-    for guild in client.guilds:
-        print(guild.name)
-    print('-••••••••••••••••••••••••••••••-\n')
+    logger.info('Servers connected to: '.join(guild.name for guild in client.guilds))
+
     # Изменяем статус приложения
     await client.change_presence(status=discord.Status.online, activity=discord.Game('Elite Dangerous'))
 
@@ -101,6 +106,7 @@ async def on_slash_command_error(ctx, error):
     await ctx.send(str(error), delete_after=13)
     logger.warning(f"An error occurred: {ctx.guild} / {ctx.author} / command: {ctx.name}, args: {ctx.args}")
 
+
 # ------------- ОБРАБАТЫВАВАЕМ ОШБИКИ КОММАНД // КОНЕЦ
 
 
@@ -113,7 +119,6 @@ async def on_slash_command(ctx):
 # ------------- ВЫВОДИМ СООБЩЕНИЯ ПОЛЬЗОВАТЕЛЕЙ В КОНСОЛЬ ПРИЛОЖЕНИЯ И ПЕРЕНАПРАВЛЯЕМ НА ДРУГИЕ СЕРВЕРА
 @client.event
 async def on_message(message):
-
     # Игнорируем сообщения, отправленные этим приложением
     if message.author.id == client.user.id:
         return
@@ -182,13 +187,14 @@ async def on_message(message):
     # Отправляем сообщение
     await send_to_servers(embed=emGlobalMessage)
 
+
 # ------------- ВЫВОДИМ СООБЩЕНИЯ ПОЛЬЗОВАТЕЛЕЙ В КОНСОЛЬ ПРИЛОЖЕНИЯ И ПЕРЕНАПРАВЛЯЕМ НА ДРУГИЕ СЕРВЕРА // КОНЕЦ
 
 
 # ------------- КОМАНДА ПРОВЕРКА ПРИЛОЖЕНИЯ
 @slash.slash(name="ping",
              description="Проверить состояние приложения.",
-             guild_ids=[guild.id for guild in client.guilds])
+             guild_ids=guild_ids_for_slash())
 # Команду может выполнить только владелец приложения
 # @commands.is_owner()
 async def ping(ctx):
@@ -197,13 +203,14 @@ async def ping(ctx):
     # Отправляем информационное сообщение и удаляем его через 13 секунд
     await ctx.send(embed=emPing, delete_after=13)
 
+
 # ------------- КОМАНДА ПРОВЕРКА ПРИЛОЖЕНИЯ // КОНЕЦ
 
 
 # ------------- КОМАНДА ПОМОЩИ
 @slash.slash(name="help",
              description="Показать информацию о командах используемых приложением.",
-             guild_ids=[guild.id for guild in client.guilds])
+             guild_ids=guild_ids_for_slash())
 async def help_(ctx):
     # Создаём информационное сообщение
     emHelp = discord.Embed(
@@ -224,13 +231,14 @@ async def help_(ctx):
     # Отправляем информационное сообщение и удаляем его через 13 секунд
     await ctx.send(embed=emHelp, delete_after=60)
 
+
 # ------------- КОММАНДА ПОМОЩИ // КОНЕЦ
 
 
 # ------------- КОМАНДА ОТОБРАЖЕНИЯ ИНФОРМАЦИИ О ПРИЛОЖЕНИИ
 @slash.slash(name="information",
              description="Показать информацию о приложение.",
-             guild_ids=[guild.id for guild in client.guilds])
+             guild_ids=guild_ids_for_slash())
 async def information(ctx):
     # Создаём сообщение
     emInformation = discord.Embed(title='ИНФОРМАЦИЯ',
@@ -259,16 +267,16 @@ async def information(ctx):
     # Отправляем сообщение и удаляем его через 60 секунд
     await ctx.send(embed=emInformation, delete_after=60)
 
+
 # ------------- КОМАНДА ОТОБРАЖЕНИЯ ИФОРМАЦИИ О ПРИЛОЖЕНИЕ // КОНЕЦ
 
 
 # ------------- КОМАНДА ЗАПИСИ ПОЛЬЗОВАТЕЛЯ В ЧЁРНЫЙ СПИСОК
 @slash.slash(name="ban",
              description="ban",
-             guild_ids=[guild.id for guild in client.guilds])
+             guild_ids=guild_ids_for_slash())
 @commands.is_owner()
 async def bluadd(ctx, userid: int):
-
     await client.sql_conn.execute('insert into black_list (userid) values (?);', [userid])
     await client.sql_conn.commit()
 
@@ -280,13 +288,14 @@ async def bluadd(ctx, userid: int):
     # Отправляем информационное сообщение и удаляем его через 13 секунд
     await ctx.send(embed=emBlackListAdd, delete_after=13)
 
+
 # ------------- КОМАНДА ЗАПИСИ ПОЛЬЗОВАТЕЛЯ В ЧЁРНЫЙ СПИСОК // КОНЕЦ
 
 
 # ------------- КОМАНДА ВЫВОДА СПИСКА СЕРВЕРОВ
 @slash.slash(name="server_leave",
              description="Покинуть сервер",
-             guild_ids=[guild.id for guild in client.guilds])
+             guild_ids=guild_ids_for_slash())
 # Команду может выполнить только владелец приложения
 @commands.is_owner()
 async def server_leave(ctx, id_to_leave: int):
@@ -295,6 +304,7 @@ async def server_leave(ctx, id_to_leave: int):
         return
     await guild_to_leave.leave()
 
+
 # ------------- КОМАНДА ВЫВОДА СПИСКА СЕРВЕРОВ // КОНЕЦ
 
 
@@ -302,7 +312,7 @@ async def server_leave(ctx, id_to_leave: int):
 # @commands.is_owner()
 @slash.slash(name="servers_list",
              description="Вывести список серверов, где присутствует бот",
-             guild_ids=[guild.id for guild in client.guilds])
+             guild_ids=guild_ids_for_slash())
 async def servers_list(ctx):
     # Создаём сообщение
     emServers = discord.Embed(title='СПИСОК СЕРВЕРОВ',
@@ -314,6 +324,8 @@ async def servers_list(ctx):
     emServers.set_footer(text=' ' + client.user.name + ' ')
     # Отправляем сообщение и удаляем его через 60 секунд
     await ctx.send(embed=emServers, delete_after=60)
+
+
 # ------------- КОМАНДА ОТКЛЮЧЕНИЯ ПРИЛОЖЕНИЯ ОТ СЕРВЕРА
 
 # ------------- КОМАНДА ОТКЛЮЧЕНИЯ ПРИЛОЖЕНИЯ ОТ СЕРВЕРА // КОНЕЦ
@@ -322,7 +334,7 @@ async def servers_list(ctx):
 # ------------- КОМАНДА СОЗДАНИЯ КАНАЛА ДЛЯ ПРИЁМА И ОТПРАВКИ СООБЩЕНИЙ
 # @slash.slash(name="setup",
 #             description="Создать канала для приёма и передачи сообщений",
-#             guild_ids=[guild.id for guild in client.guilds])
+#             guild_ids=guild_ids_for_slash())
 # Команду может выполнить только пользователь, с ролью администратор
 # @has_permissions(administrator=True)
 # async def setup(ctx):
