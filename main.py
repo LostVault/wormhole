@@ -104,7 +104,7 @@ async def on_slash_command_error(ctx, error):
     logger.warning(
         f"An error occurred: {ctx.guild} / {ctx.author} / command: {ctx.name}; Error: {error}")
     if isinstance(error, discord.ext.commands.NotOwner):
-        await ctx.send('Эта команда доступна только для владельца приложения', delete_after=13)
+        await ctx.send('Выполнение этой команды доступно только владельцу приложения', delete_after=13)
         return
 
     await ctx.send(str(error), delete_after=13)
