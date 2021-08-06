@@ -118,7 +118,7 @@ async def on_slash_command_error(ctx, error):
 async def on_slash_command(ctx):
     logger.info(f'Got slash command; {ctx.guild} / {ctx.author} / command: {ctx.name};'
                 f' subcommand_name: {ctx.subcommand_name};'
-                f' subcommand_group: {ctx.subcommand_group}; options: {ctx.data["options"]}')
+                f' subcommand_group: {ctx.subcommand_group}; options: {ctx.data.get("options")}')
 
 
 # ------------- ВЫВОДИМ СООБЩЕНИЯ ПОЛЬЗОВАТЕЛЕЙ В КОНСОЛЬ ПРИЛОЖЕНИЯ И ПЕРЕНАПРАВЛЯЕМ НА ДРУГИЕ СЕРВЕРА
