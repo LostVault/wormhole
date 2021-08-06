@@ -371,9 +371,10 @@ async def blacklist_remove(ctx, userid):
 @commands.is_owner()
 async def server_leave(ctx, id_to_leave: int):
     if guild_to_leave := client.get_guild(id_to_leave) is None:
-        await ctx.send('No guild with such ID')
+        await ctx.send('Сервер с указанным ID не найден', delete_after=13)
         return
     await guild_to_leave.leave()
+    await ctx.send('Сервер с указанным ID успешно покинут', delete_after=13)
 
 
 # ------------- КОМАНДА ВЫВОДА СПИСКА СЕРВЕРОВ // КОНЕЦ
