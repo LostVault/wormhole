@@ -96,6 +96,19 @@ async def on_ready():
 
 # ------------- ВЫВОДИМ ДАННЫЕ ПРИЛОЖЕНИЯ ПРИ ПОДКЛЮЧЕНИЕ В КОНСОЛЬ // КОНЕЦ
 
+@client.event
+async def on_slash_command_error(ctx, error):
+    await ctx.send(str(error), delete_after=13)
+    logger.warning(f"An error occurred: {ctx.guild} / {ctx.author} / command: {ctx.name}, args: {ctx.args}")
+
+# ------------- ОБРАБАТЫВАВАЕМ ОШБИКИ КОММАНД // КОНЕЦ
+
+
+# Логирование слэш-команд
+@client.event
+async def on_slash_command(ctx):
+    logger.info(f'Got slash command; {ctx.guild} / {ctx.author} / command: {ctx.name}, args: {ctx.args}')
+
 
 # ------------- ВЫВОДИМ СООБЩЕНИЯ ПОЛЬЗОВАТЕЛЕЙ В КОНСОЛЬ ПРИЛОЖЕНИЯ И ПЕРЕНАПРАВЛЯЕМ НА ДРУГИЕ СЕРВЕРА
 @client.event
