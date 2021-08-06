@@ -79,7 +79,7 @@ def get_invite_link(bot_id):
 # ------------- ВЫВОДИМ ДАННЫЕ ПРИЛОЖЕНИЯ ПРИ ПОДКЛЮЧЕНИЕ В КОНСОЛЬ
 @client.event
 async def on_ready():
-    client.sql_conn = await aiosqlite.connect('Wormhole.sqlite')
+    client.sql_conn = await aiosqlite.connect(config.db_file_name)
     await client.sql_conn.execute('create table if not exists black_list (userid integer not null unique, '
                                   'add_timestamp text default current_timestamp, reason text, banner_id integer);')
 

@@ -13,6 +13,9 @@ globalchannel = environ['WORMHOLE_GLOBALCHANNEL']
 environment_type = environ['WORMHOLE_ENVIRONMENT'].lower()
 assert environment_type in ['test', 'prod'], f"Wrong environment type: {environment_type}, must be 'test' or 'prod'"
 
+# Имя файла база данных
+db_file_name = 'Wormhole.sqlite'
+
 # Краткое описание приложения:
 client_short_description = "Приложение для обмена текстовыми и файловыми сообщениями между серверами по игре" \
                            " Elite Dangerous"
