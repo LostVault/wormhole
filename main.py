@@ -15,7 +15,7 @@ import config  # Импортируем настройки приложения
 
 
 # ------------- СОЗДАЁМ ПРИЛОЖЕНИЕ И НАЗЫВАЕМ ЕГО CLIENT
-client = commands.Bot(description="Test bot", command_prefix=commands.when_mentioned_or(config.prefix),
+client = commands.Bot(description=config.bot_description, command_prefix=commands.when_mentioned_or(config.prefix),
                       case_insensitive=True, help_command=None)
 
 # ------------- СОЗДАЁМ ОБРАБОТКУ КОМАНДЫ С КОСОЙ ЧЕРТОЙ ЧЕРЕЗ СОЗДАННОЕ ПРИЛОЖЕНИЕ
@@ -65,6 +65,10 @@ def guild_ids_for_slash():
         return [guild.id for guild in client.guilds]
 
 
+def get_invite_link(bot_id):
+    return f'https://discord.com/api/oauth2/authorize?client_id={bot_id}&permissions=0&scope=bot%20applications.commands'  # noqa: E501
+
+
 # ------------- ВЫВОДИМ ДАННЫЕ ПРИЛОЖЕНИЯ ПРИ ПОДКЛЮЧЕНИЕ В КОНСОЛЬ
 @client.event
 async def on_ready():
@@ -80,8 +84,7 @@ async def on_ready():
 
     # Показывает ID приложения указанное на discordapp.com
     logger.info('APP Client ID: {0.user.id} '.format(client))
-    logger.info(f'Link for connection: https://discord.com/api/oauth2/authorize?client_id={client.user.id}&'
-                f'permissions=0&scope=bot%20applications.commands')
+    logger.info(f'Link for connection: {get_invite_link(client.user.id)}')
 
     # Выводит список серверов, к которым подключено приложение
     logger.info('Servers connected to: ' + ''.join('"' + guild.name + '"; ' for guild in client.guilds))
@@ -247,23 +250,8 @@ async def help_(ctx):
 async def information(ctx):
     # Создаём сообщение
     emInformation = discord.Embed(title='ИНФОРМАЦИЯ',
-                                  description='Приложение создано для обмена текстовыми и файловыми сообщениями между '
-                                              'серверами по игре [Elite Dangerous](https://www.elitedangerous.com/). '
-                                              'В первую очередь приложение направлено помочь эскадронам с закрытыми '
-                                              'серверами, обмениваться сообщениями с другими серверами и для тех '
-                                              'серверов и пользователи которых предпочитают находится только на своём '
-                                              'сервере по [Elite Dangerous](https://www.elitedangerous.com/). Для '
-                                              'остальных же данное приложение может быть не так востребовано, '
-                                              'но так как приложение не привязано к какому либо серверу, '
-                                              'его можно использовать для серверов другой тематики.\n\nЕсли вы '
-                                              'владеете одним из серверов по [Elite Dangerous]('
-                                              'https://www.elitedangerous.com/) или связанной тематике и хотите '
-                                              'подключить приложение к себе на сервер, воспользуйтесь данной ['
-                                              'ссылкой]('
-                                              'https://discordapp.com/oauth2/authorize?&client_id=826410895634333718'
-                                              '&scope=bot&permissions=0), либо можете на основе исходного кода '
-                                              'данного приложения сделать свою сеть обмена сообщениями например по '
-                                              'торговле или другой игре.',
+                                  description=config.information_text.format(
+                                      invite_link=get_invite_link(client.user.id)),
                                   colour=0x2F3136)
     emInformation.add_field(name='Разработчики ', value='• <@420130693696323585>\n• <@665018860587450388>')
     emInformation.add_field(name='Благодарности', value='• <@478527700710195203>')
