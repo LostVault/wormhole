@@ -15,7 +15,7 @@ import config  # Импортируем настройки приложения
 
 
 # ------------- СОЗДАЁМ ПРИЛОЖЕНИЕ И НАЗЫВАЕМ ЕГО CLIENT
-client = commands.Bot(description=config.bot_description, command_prefix=None, help_command=None)
+client = commands.Bot(description=config.client_short_description, command_prefix=None, help_command=None)
 
 # ------------- СОЗДАЁМ ОБРАБОТКУ КОМАНДЫ С КОСОЙ ЧЕРТОЙ ЧЕРЕЗ СОЗДАННОЕ ПРИЛОЖЕНИЕ
 slash = SlashCommand(client, sync_commands=True)
@@ -424,7 +424,7 @@ async def setup(ctx):
     if ctx.author.guild_permissions.administrator:  # проверка наличия админских прав на сервере у выполняющего
         guild = ctx.guild
         if discord.utils.get(guild.text_channels,
-                             name=config.globalchannel) is None:  # проверка на наличие нужного канала # noqa:E501
+                             name=config.globalchannel) is None:  # проверка на наличие нужного канала
             await guild.create_text_channel(name=config.globalchannel)
             await ctx.send(
                 f'Канал {config.globalchannel} успешно создан и будет использоваться для пересылки сообщений',
