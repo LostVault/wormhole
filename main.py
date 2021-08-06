@@ -84,7 +84,7 @@ async def on_ready():
                 f'permissions=0&scope=bot%20applications.commands')
 
     # Выводит список серверов, к которым подключено приложение
-    logger.info('Servers connected to: '.join(guild.name for guild in client.guilds))
+    logger.info('Servers connected to: ' + ''.join('"' + guild.name + '"; ' for guild in client.guilds))
 
     # Изменяем статус приложения
     await client.change_presence(status=discord.Status.online, activity=discord.Game('Elite Dangerous'))
