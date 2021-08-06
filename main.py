@@ -49,12 +49,12 @@ async def send_to_servers(*args, **kwargs):
         if channel := discord.utils.get(guild.text_channels, name=config.globalchannel):
             try:
                 await channel.send(*args, **kwargs)
-            except discord.Forbidden:
-                print(f"System: Невозможно отправить сообщение на сервер {guild.name}: Недостаточно прав")
+            except discord.Forbidden as e:
+                logger.warning(f"Failed to send message to {guild.name}: discord.Forbidden\n{e}")
             except discord.HTTPException as e:
-                print(f"System: Невозможно отправить сообщение на сервер {guild.name}: {e}")
+                logger.warning(f"Failed to send message to {guild.name}: discord.HTTPException\n{e}")
             except Exception as e:
-                print(f"System: Не получилось отправить сообщение на сервер {guild.name}: {e}")
+                logger.warning(f"Failed to send message to {guild.name}: {e}")
 
 
 # ------------- БЫСТЫРЫЙ СКРИПТ НА ОТПРАВКУ СООБЩЕНИЙ // КОНЕЦ
