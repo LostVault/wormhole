@@ -35,7 +35,7 @@ logger.setLevel(logging.INFO)
 # ------------- РЕГИСТРИРУЕМ СОБЫТИЯ ПРИЛОЖЕНИЯ // КОНЕЦ
 
 
-# ------------- КОРУТИНА ДЛЯ ПЕРЕСЫЛКИ СООБЩЕНИЯ НА ВСЕ СЕРВЕРА
+# ------------- СКРИПТ ШАБЛОН ДЛЯ ПЕРЕСЫЛКИ СООБЩЕНИЯ НА ВСЕ СЕРВЕРА
 async def send_to_servers(*args, **kwargs):
     """
     send message to all connected servers to config.globalchannel channel, arguments as for channel.send()
@@ -55,9 +55,10 @@ async def send_to_servers(*args, **kwargs):
                 logger.warning(f"Failed to send message to {guild.name}: {e}")
 
 
-# ------------- БЫСТЫРЫЙ СКРИПТ НА ОТПРАВКУ СООБЩЕНИЙ // КОНЕЦ
+# ------------- СКРИПТ ШАБЛОН ДЛЯ ПЕРЕСЫЛКИ СООБЩЕНИЯ НА ВСЕ СЕРВЕРА // КОНЕЦ
 
 
+# ------------- КАКАЯ-ТО НЕПОНЯТНАЯ ШТУКА ᓚᘏᗢ
 def guild_ids_for_slash():
     if config.environment_type == 'prod':
         return None
@@ -65,8 +66,15 @@ def guild_ids_for_slash():
         return [guild.id for guild in client.guilds]
 
 
+# ------------- КАКАЯ-ТО НЕПОНЯТНАЯ ШТУКА ᓚᘏᗢ // КОНЕЦ
+
+
+# ------------- СОЗДАЁМ ССЫЛКУ ДЛЯ ПОДКЛЮЧЕНИЯ ПРИЛОЖЕНИЯ К СЕРВЕРУ
 def get_invite_link(bot_id):
-    return f'https://discord.com/api/oauth2/authorize?client_id={bot_id}&permissions=0&scope=bot%20applications.commands'  # noqa: E501
+    return f'https://discord.com/oauth2/authorize?client_id={bot_id}&scope=bot%20applications.commands'  # noqa: E501
+
+
+# ------------- СОЗДАЁМ ССЫЛКУ ДЛЯ ПОДКЛЮЧЕНИЯ ПРИЛОЖЕНИЯ К СЕРВЕРУ // КОНЕЦ
 
 
 # ------------- ВЫВОДИМ ДАННЫЕ ПРИЛОЖЕНИЯ ПРИ ПОДКЛЮЧЕНИЕ В КОНСОЛЬ
