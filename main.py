@@ -100,8 +100,17 @@ async def on_ready():
 # ------------- ВЫВОДИМ СООБЩЕНИЯ ПОЛЬЗОВАТЕЛЕЙ В КОНСОЛЬ ПРИЛОЖЕНИЯ И ПЕРЕНАПРАВЛЯЕМ НА ДРУГИЕ СЕРВЕРА
 @client.event
 async def on_message(message):
-    # Дублирует сообщения в консоль приложения
-    print('{0.guild} / #{0.channel} / {0.author}: {0.content}'.format(message))
+
+    # Игнорируем сообщения, отправленные этим приложением
+    if message.author.id == client.user.id:
+        return
+
+    # Логирует сообщения в консоль приложения
+    logger.info('Message: {0.guild} / #{0.channel} / {0.author}: {0.content}'.format(message))
+
+    # Игнорируем сообщения в ЛС
+    if isinstance(message.channel, discord.DMChannel):
+        return
 
     # Игнорируем сообщения, отправленные не в забриджованный канал
     if message.channel.name != config.globalchannel:
@@ -113,10 +122,6 @@ async def on_message(message):
 
     # Игнорируем сообщения, отправленные другими приложениями
     if message.author.bot:
-        return
-
-    # Игнорируем сообщения, отправленные этим приложением
-    if message.author.id == client.user.id:
         return
 
     # Игнорируем сообщения с упоминанием
@@ -266,30 +271,6 @@ async def bluadd(ctx, userid: int):
 
 
 # ------------- КОМАНДА ВЫВОДА СПИСКА СЕРВЕРОВ
-@slash.slash(name="servers_list",
-             description="Вывести список серверов, где присутствует бот",
-             guild_ids=[guild.id for guild in client.guilds])
-# Команду может выполнить только владелец приложения
-@commands.is_owner()
-async def servers_list(ctx):
-    # Удаляем сообщение, отправленное пользователем
-    await ctx.message.delete()
-    print("".join(guild.name + '\n' for guild in client.guilds))
-    # Создаём сообщение
-    emServers = discord.Embed(title='СПИСОК СЕРВЕРОВ',
-                              description='Список серверов, к которым подключено приложение.',
-                              colour=0x2F3136)
-    emServers.add_field(
-        name='Список серверов',
-        value="".join(guild.name + f' (ID:{guild.id})\n' for guild in client.guilds))
-    emServers.set_footer(text=' ' + client.user.name + ' ')
-    # Отправляем сообщение и удаляем его через 60 секунд
-    await ctx.send(embed=emServers, delete_after=60)
-
-# ------------- КОМАНДА ВЫВОДА СПИСКА СЕРВЕРОВ // КОНЕЦ
-
-
-# ------------- КОМАНДА ОТКЛЮЧЕНИЯ ПРИЛОЖЕНИЯ ОТ СЕРВЕРА
 @slash.slash(name="server_leave",
              description="Покинуть сервер",
              guild_ids=[guild.id for guild in client.guilds])
@@ -300,6 +281,27 @@ async def server_leave(ctx, id_to_leave: int):
         await ctx.send('No guild with such ID')
         return
     await guild_to_leave.leave()
+
+# ------------- КОМАНДА ВЫВОДА СПИСКА СЕРВЕРОВ // КОНЕЦ
+
+
+# Команду может выполнить только владелец приложения
+# @commands.is_owner()
+@slash.slash(name="servers_list",
+             description="Вывести список серверов, где присутствует бот",
+             guild_ids=[guild.id for guild in client.guilds])
+async def servers_list(ctx):
+    # Создаём сообщение
+    emServers = discord.Embed(title='СПИСОК СЕРВЕРОВ',
+                              description='Список серверов, к которым подключено приложение.',
+                              colour=0x2F3136)
+    emServers.add_field(
+        name='Список серверов',
+        value="".join(guild.name + f' (ID:{guild.id})\n' for guild in client.guilds))
+    emServers.set_footer(text=' ' + client.user.name + ' ')
+    # Отправляем сообщение и удаляем его через 60 секунд
+    await ctx.send(embed=emServers, delete_after=60)
+# ------------- КОМАНДА ОТКЛЮЧЕНИЯ ПРИЛОЖЕНИЯ ОТ СЕРВЕРА
 
 # ------------- КОМАНДА ОТКЛЮЧЕНИЯ ПРИЛОЖЕНИЯ ОТ СЕРВЕРА // КОНЕЦ
 
