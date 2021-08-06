@@ -2,7 +2,7 @@
 from os import environ
 
 # Токен для авторизации тестового приложения:
-token = environ['WORMHOLE_TOKEN_0']
+token = environ['WORMHOLE_TOKEN_DISCORD']
 
 # Название глобального канал:
 globalchannel = environ['WORMHOLE_GLOBALCHANNEL']
