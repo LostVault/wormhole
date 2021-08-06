@@ -156,10 +156,6 @@ async def on_message(message):
     if message.channel.name != config.globalchannel:
         return
 
-    # Игнорируем сообщения, начинающиеся с префикса команд
-    if message.content.startswith(config.prefix) or client.user.mentioned_in(message):
-        return
-
     # Игнорируем сообщения, отправленные другими приложениями
     if message.author.bot:
         return
