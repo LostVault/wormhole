@@ -116,7 +116,10 @@ async def on_slash_command_error(ctx, error):
         f"An error occurred: {ctx.guild} / {ctx.author} / command: {ctx.name}; Error: {error}")
     if isinstance(error, discord.ext.commands.NotOwner):
         # Создаём информационное сообщение
-        emSlashErrorNotOwner = discord.Embed(title='ВНИМАНИЕ!', description=ctx.author.mention + ', выполнение этой команды доступно только владельцу приложения', color=0xd40000)
+        emSlashErrorNotOwner = discord.Embed(
+            title='ВНИМАНИЕ!',
+            description=ctx.author.mention + ', выполнение этой команды доступно только владельцу приложения',
+            color=0xd40000)
         # Отправляем информационное сообщение и удаляем его через 13 секунд
         await ctx.send(embed=emSlashErrorNotOwner, delete_after=13)
         return
