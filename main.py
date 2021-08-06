@@ -8,7 +8,7 @@ import discord  # Импортируем основной модуль
 from discord.ext import commands  # Импортируем команды из модуля discord.ext
 from discord.ext.commands import has_permissions
 from discord_slash import SlashCommand, SlashContext  # Импортируем модуль команд с косой чертой (slash)
-# from discord_slash.utils.manage_commands import create_choice, create_option
+from discord_slash.utils.manage_commands import create_choice, create_option
 from sys import stdout  # Импортируем модуль для регистрации событий приложения
 
 import config  # Импортируем настройки приложения
@@ -71,8 +71,8 @@ def guild_ids_for_slash():
 @client.event
 async def on_ready():
     client.sql_conn = await aiosqlite.connect('Wormhole.sqlite')
-    await client.sql_conn.execute('create table if not exists black_list (userid integer not null, add_timestamp text '
-                                  'default current_timestamp, reason text, banner_id integer);')
+    await client.sql_conn.execute('create table if not exists black_list (userid integer not null unique, '
+                                  'add_timestamp text default current_timestamp, reason text, banner_id integer);')
 
     # Показывает имя приложения, указанное на discordapp.com
     logger.info(f'APP Username: {client.user} ')
@@ -103,10 +103,13 @@ async def on_ready():
 
 @client.event
 async def on_slash_command_error(ctx, error):
-    await ctx.send(str(error), delete_after=13)
     logger.warning(
-        f"An error occurred: {ctx.guild} / {ctx.author} / command: {ctx.name}, args: {ctx.args}; Error {error}")
+        f"An error occurred: {ctx.guild} / {ctx.author} / command: {ctx.name}, args: {ctx.args}; Error: {error}")
+    if isinstance(error, discord.ext.commands.NotOwner):
+        await ctx.send('Эта команда доступна только для владельца приложения', delete_after=13)
+        return
 
+    await ctx.send(str(error), delete_after=13)
 
 # ------------- ОБРАБАТЫВАВАЕМ ОШБИКИ КОММАНД // КОНЕЦ
 
@@ -114,7 +117,9 @@ async def on_slash_command_error(ctx, error):
 # Логирование слэш-команд
 @client.event
 async def on_slash_command(ctx):
-    logger.info(f'Got slash command; {ctx.guild} / {ctx.author} / command: {ctx.name}, args: {ctx.args}')
+    logger.info(f'Got slash command; {ctx.guild} / {ctx.author} / command: {ctx.name};'
+                f' subcommand_name: {ctx.subcommand_name};'
+                f' subcommand_group: {ctx.subcommand_group}; args: {ctx.args}; kwargs: {ctx.kwargs}')
 
 
 # ------------- ВЫВОДИМ СООБЩЕНИЯ ПОЛЬЗОВАТЕЛЕЙ В КОНСОЛЬ ПРИЛОЖЕНИЯ И ПЕРЕНАПРАВЛЯЕМ НА ДРУГИЕ СЕРВЕРА
@@ -274,24 +279,89 @@ async def information(ctx):
 
 
 # ------------- КОМАНДА ЗАПИСИ ПОЛЬЗОВАТЕЛЯ В ЧЁРНЫЙ СПИСОК
-@slash.slash(name="ban",
-             description="ban",
-             guild_ids=guild_ids_for_slash())
 @commands.is_owner()
-async def bluadd(ctx, userid: int):
-    await client.sql_conn.execute('insert into black_list (userid) values (?);', [userid])
+@slash.subcommand(
+    base='blacklist',
+    name='add',
+    guild_ids=guild_ids_for_slash(),
+    base_desc='Действия с чёрным списком',
+    description='Внести пользователя в чёрный список приложения',
+    options=[
+        create_option(
+            name='userid',
+            description='userid to ban',
+            option_type=6,
+            required=True),
+        create_option(
+            name='reason',
+            description='reason to ban',
+            option_type=3,
+            required=False
+            )])
+async def blacklist_add(ctx, userid, reason=None):
+    is_userid_banned = bool((await (await client.sql_conn.execute('select count(*) from black_list where userid = ?;',
+                                                                  [userid])).fetchone())[0])
+    if is_userid_banned:
+        await ctx.send('Этот пользователь уже есть в чёрном списке приложения', delete_after=13)
+        return
+
+    await client.sql_conn.execute('insert into black_list (userid, reason, banner_id)'
+                                  ' values (?, ?, ?);', [userid, reason, ctx.author.id])
     await client.sql_conn.commit()
 
     # Создаём информационное сообщение
     emBlackListAdd = discord.Embed(
         title='⚠ • ВНИМАНИЕ!',
-        description=f'Пользователь с ID {userid} записан в чёрный список.',
+        description=f'Пользователь с ID {userid} занесён в чёрный список приложения',
         color=0xd40000)
-    # Отправляем информационное сообщение и удаляем его через 13 секунд
     await ctx.send(embed=emBlackListAdd, delete_after=13)
 
-
 # ------------- КОМАНДА ЗАПИСИ ПОЛЬЗОВАТЕЛЯ В ЧЁРНЫЙ СПИСОК // КОНЕЦ
+
+
+# Показ содержимого чёрного списка
+# TODO: Нормальное форматирование таблицы
+@slash.subcommand(
+    base='blacklist',
+    name='show',
+    guild_ids=guild_ids_for_slash(),
+    base_desc='Действия с чёрным списком',
+    description='Показать чёрный список'
+    )
+async def blacklist_show(ctx):
+    full_list = await client.sql_conn.execute('select userid, add_timestamp, reason, banner_id from black_list')
+    table = ['userid    add_timestamp   reason  banner_id']
+    for user in (await full_list.fetchall()):
+        table.append('   '.join([str(item).center(5, ' ') for item in user]))
+    table = "```" + '\n'.join(table) + "```"
+    await ctx.send(table, delete_after=13)
+
+
+# Удаление пользователя из чёрного списка
+@commands.is_owner()
+@slash.subcommand(
+    base='blacklist',
+    name='remove',
+    guild_ids=guild_ids_for_slash(),
+    base_desc='Действия с чёрным списком',
+    description='Удалить пользователя из чёрного списка приложения',
+    options=[
+        create_option(
+            name='userid',
+            description='userid to unban',
+            option_type=6,
+            required=True)
+    ])
+async def blacklist_remove(ctx, userid):
+    is_userid_banned = bool((await (await client.sql_conn.execute('select count(*) from black_list where userid = ?;',
+                                                                  [userid])).fetchone())[0])
+    if not is_userid_banned:
+        await ctx.send('Этот пользователь не находится чёрном списке приложения', delete_after=13)
+        return
+
+    await client.sql_conn.execute('delete from black_list where userid = ?', [userid])
+    await client.sql_conn.commit()
+    await ctx.send('Пользователь успешно удалён из чёрного списка', delete_after=13)
 
 
 # ------------- КОМАНДА ВЫВОДА СПИСКА СЕРВЕРОВ
