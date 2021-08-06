@@ -15,7 +15,7 @@ import config  # Импортируем настройки приложения
 
 
 # ------------- СОЗДАЁМ ПРИЛОЖЕНИЕ И НАЗЫВАЕМ ЕГО CLIENT
-client = commands.Bot(description=config.bot_description, command_prefix=commands.when_mentioned_or(config.prefix),
+client = commands.Bot(description=config.client_short_description, command_prefix=commands.when_mentioned_or(config.prefix),
                       case_insensitive=True, help_command=None)
 
 # ------------- СОЗДАЁМ ОБРАБОТКУ КОМАНДЫ С КОСОЙ ЧЕРТОЙ ЧЕРЕЗ СОЗДАННОЕ ПРИЛОЖЕНИЕ
@@ -258,7 +258,7 @@ async def help_(ctx):
 async def information(ctx):
     # Создаём сообщение
     emInformation = discord.Embed(title='ИНФОРМАЦИЯ',
-                                  description=config.information_text.format(
+                                  description=config.client_full_description.format(
                                       invite_link=get_invite_link(client.user.id)),
                                   colour=0x2F3136)
     emInformation.add_field(name='Разработчики ', value='• <@420130693696323585>\n• <@665018860587450388>')
