@@ -409,19 +409,21 @@ async def servers_list(ctx):
              guild_ids=guild_ids_for_slash())
 # Команду может выполнить только пользователь, с ролью администратор
 async def setup(ctx):
-    if ctx.channel is None:  # проверка, не в лс ли идёт команда
+    if isinstance(ctx.author, discord.User):  # проверка, не в лс ли идёт команда
         await ctx.send('Использование этой команды допускается только на серверах, не в личных сообщениях',
                        delete_after=13)
         return
 
-    if ctx.author.server_permissions.administrator:  # проверка на наличие админских прав у выполняющего
-        guild = ctx.message.guild
-        if discord.utils.get(guild.text_channels, name=config.globalchannel) is None:  # проверка на наличие нужного канала # noqa:E501
+    if ctx.author.guild_permissions.administrator:  # проверка наличия админских прав на сервере у выполняющего
+        guild = ctx.guild
+        if discord.utils.get(guild.text_channels,
+                             name=config.globalchannel) is None:  # проверка на наличие нужного канала # noqa:E501
             await guild.create_text_channel(name=config.globalchannel)
             await ctx.send(
-                f'Канал {config.globalchannel} успешно создан и будет использоваться для пересылки сообщений')
+                f'Канал {config.globalchannel} успешно создан и будет использоваться для пересылки сообщений',
+                delete_after=13)
         else:
-            await ctx.send(f'У вас уже есть подходящий канал: {config.globalchannel}')
+            await ctx.send(f'У вас уже есть подходящий канал: {config.globalchannel}', delete_after=13)
     else:
         await ctx.send('Для выполнения этой команды вам необходимо обладать правами администратора на этом сервере',
                        delete_after=13)
