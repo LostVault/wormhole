@@ -102,6 +102,8 @@ async def on_ready():
 
 # ------------- ВЫВОДИМ ДАННЫЕ ПРИЛОЖЕНИЯ ПРИ ПОДКЛЮЧЕНИЕ В КОНСОЛЬ // КОНЕЦ
 
+
+# ------------- РЕГИСТРИРУЕМ ОШИБКИ КОМАНД С КОСОЙ ЧЕРТОЙ
 @client.event
 async def on_slash_command_error(ctx, error):
     logger.warning(
@@ -113,15 +115,18 @@ async def on_slash_command_error(ctx, error):
     await ctx.send(str(error), delete_after=13)
 
 
-# ------------- ОБРАБАТЫВАВАЕМ ОШБИКИ КОММАНД // КОНЕЦ
+# ------------- РЕГИСТРИРУЕМ ОШИБКИ КОМАНД С КОСОЙ ЧЕРТОЙ // КОНЕЦ
 
 
-# Логирование слэш-команд
+# ------------- РЕГИСТРИРУЕМ КОМАНДЫ С КОСОЙ ЧЕРТОЙ
 @client.event
 async def on_slash_command(ctx):
     logger.info(f'Got slash command; {ctx.guild} / {ctx.author} / command: {ctx.name};'
                 f' subcommand_name: {ctx.subcommand_name};'
                 f' subcommand_group: {ctx.subcommand_group}; options: {ctx.data.get("options")}')
+
+
+# ------------- РЕГИСТРИРУЕМ КОМАНДЫ С КОСОЙ ЧЕРТОЙ // КОНЕЦ
 
 
 # ------------- ВЫВОДИМ СООБЩЕНИЯ ПОЛЬЗОВАТЕЛЕЙ В КОНСОЛЬ ПРИЛОЖЕНИЯ И ПЕРЕНАПРАВЛЯЕМ НА ДРУГИЕ СЕРВЕРА
@@ -236,7 +241,7 @@ async def help_(ctx):
     emHelp.add_field(name='Дополнительная информация',
                      value='Дополнительную информацию о приложение можно запросить командой `information`',
                      inline=False)
-    # Отправляем информационное сообщение и удаляем его через 13 секунд
+    # Отправляем информационное сообщение и удаляем его через 60 секунд
     await ctx.send(embed=emHelp, delete_after=60)
 
 
@@ -306,6 +311,7 @@ async def blacklist_add(ctx, userid, reason=None):
 # ------------- КОМАНДА ЗАПИСИ ПОЛЬЗОВАТЕЛЯ В ЧЁРНЫЙ СПИСОК // КОНЕЦ
 
 
+# ------------- КОМАНДА ОТОБРАЖЕНИЯ ЧЁРНОГО СПИСОКА
 # Показ содержимого чёрного списка
 # TODO: Нормальное форматирование таблицы
 @slash.subcommand(
@@ -324,7 +330,10 @@ async def blacklist_show(ctx):
     await ctx.send(table, delete_after=13)
 
 
-# Удаление пользователя из чёрного списка
+# ------------- КОМАНДА ОТОБРАЖЕНИЯ ЧЁРНОГО СПИСОКА // КОНЕЦ
+
+
+# ------------- КОМАНДА УДАЛЕНИЯ ПОЛЬЗОВАТЕЛЯ ИЗ ЧЁРНОГО СПИСКА
 @commands.is_owner()
 @slash.subcommand(
     base='blacklist',
@@ -351,23 +360,10 @@ async def blacklist_remove(ctx, userid):
     await ctx.send('Пользователь успешно удалён из чёрного списка', delete_after=13)
 
 
+# ------------- КОМАНДА УДАЛЕНИЯ ПОЛЬЗОВАТЕЛЯ ИЗ ЧЁРНОГО СПИСКА // КОНЕЦ
+
+
 # ------------- КОМАНДА ВЫВОДА СПИСКА СЕРВЕРОВ
-@slash.slash(name="server_leave",
-             description="Покинуть сервер",
-             guild_ids=guild_ids_for_slash())
-# Команду может выполнить только владелец приложения
-@commands.is_owner()
-async def server_leave(ctx, id_to_leave: int):
-    if guild_to_leave := client.get_guild(id_to_leave) is None:
-        await ctx.send('Сервер с указанным ID не найден', delete_after=13)
-        return
-    await guild_to_leave.leave()
-    await ctx.send('Сервер с указанным ID успешно покинут', delete_after=13)
-
-
-# ------------- КОМАНДА ВЫВОДА СПИСКА СЕРВЕРОВ // КОНЕЦ
-
-
 # Команду может выполнить только владелец приложения
 # @commands.is_owner()
 @slash.slash(name="servers_list",
@@ -386,7 +382,22 @@ async def servers_list(ctx):
     await ctx.send(embed=emServers, delete_after=60)
 
 
+# ------------- КОМАНДА ВЫВОДА СПИСКА СЕРВЕРОВ // КОНЕЦ
+
+
 # ------------- КОМАНДА ОТКЛЮЧЕНИЯ ПРИЛОЖЕНИЯ ОТ СЕРВЕРА
+@slash.slash(name="server_leave",
+             description="Покинуть сервер",
+             guild_ids=guild_ids_for_slash())
+# Команду может выполнить только владелец приложения
+@commands.is_owner()
+async def server_leave(ctx, id_to_leave: int):
+    if guild_to_leave := client.get_guild(id_to_leave) is None:
+        await ctx.send('Сервер с указанным ID не найден', delete_after=13)
+        return
+    await guild_to_leave.leave()
+    await ctx.send('Сервер с указанным ID успешно покинут', delete_after=13)
+
 
 # ------------- КОМАНДА ОТКЛЮЧЕНИЯ ПРИЛОЖЕНИЯ ОТ СЕРВЕРА // КОНЕЦ
 
