@@ -34,7 +34,7 @@ logger.setLevel(logging.INFO)
 # ------------- РЕГИСТРИРУЕМ СОБЫТИЯ ПРИЛОЖЕНИЯ // КОНЕЦ
 
 
-# ------------- КОРУТИНА ДЛЯ ПЕРЕСЫЛКИ СООБЩЕНИЯ НА ВСЕ СЕРВЕРА
+# ------------- СКРИПТ ШАБЛОН ДЛЯ ПЕРЕСЫЛКИ СООБЩЕНИЯ НА ВСЕ СЕРВЕРА
 async def send_to_servers(*args, **kwargs):
     """
     send message to all connected servers to config.globalchannel channel, arguments as for channel.send()
@@ -54,9 +54,10 @@ async def send_to_servers(*args, **kwargs):
                 logger.warning(f"Failed to send message to {guild.name}: {e}")
 
 
-# ------------- БЫСТЫРЫЙ СКРИПТ НА ОТПРАВКУ СООБЩЕНИЙ // КОНЕЦ
+# ------------- СКРИПТ ШАБЛОН ДЛЯ ПЕРЕСЫЛКИ СООБЩЕНИЯ НА ВСЕ СЕРВЕРА // КОНЕЦ
 
 
+# ------------- КАКАЯ-ТО НЕПОНЯТНАЯ ШТУКА ᓚᘏᗢ
 def guild_ids_for_slash():
     if config.environment_type == 'prod':
         return None
@@ -64,8 +65,15 @@ def guild_ids_for_slash():
         return [guild.id for guild in client.guilds]
 
 
+# ------------- КАКАЯ-ТО НЕПОНЯТНАЯ ШТУКА ᓚᘏᗢ // КОНЕЦ
+
+
+# ------------- СОЗДАЁМ ШАБЛОН С ССЫЛКОЙ ДЛЯ ПОДКЛЮЧЕНИЯ ПРИЛОЖЕНИЯ К СЕРВЕРУ
 def get_invite_link(bot_id):
-    return f'https://discord.com/api/oauth2/authorize?client_id={bot_id}&permissions=0&scope=bot%20applications.commands'  # noqa: E501
+    return f'https://discord.com/oauth2/authorize?client_id={bot_id}&scope=bot%20applications.commands'  # noqa: E501
+
+
+# ------------- СОЗДАЁМ ШАБЛОН С ССЫЛКОЙ ДЛЯ ПОДКЛЮЧЕНИЯ ПРИЛОЖЕНИЯ К СЕРВЕРУ // КОНЕЦ
 
 
 # ------------- ВЫВОДИМ ДАННЫЕ ПРИЛОЖЕНИЯ ПРИ ПОДКЛЮЧЕНИЕ В КОНСОЛЬ
@@ -96,31 +104,38 @@ async def on_ready():
     emStatusOn.set_image(
         url="https://media.discordapp.net/attachments/682731260719661079/682731350922493952/ED1.gif")
     await send_to_servers(embed=emStatusOn, delete_after=13)
-    # Отправляем сообщение
 
 
 # ------------- ВЫВОДИМ ДАННЫЕ ПРИЛОЖЕНИЯ ПРИ ПОДКЛЮЧЕНИЕ В КОНСОЛЬ // КОНЕЦ
 
+
+# ------------- РЕГИСТРИРУЕМ ОШИБКИ КОМАНД С КОСОЙ ЧЕРТОЙ И СООБЩАЕМ ОБ ЭТОМ ПОЛЬЗОВАТЕЛЯМ
 @client.event
 async def on_slash_command_error(ctx, error):
     logger.warning(
         f"An error occurred: {ctx.guild} / {ctx.author} / command: {ctx.name}; Error: {error}")
     if isinstance(error, discord.ext.commands.NotOwner):
-        await ctx.send('Выполнение этой команды доступно только владельцу приложения', delete_after=13)
+        # Создаём информационное сообщение
+        emSlashErrorNotOwner = discord.Embed(title='ВНИМАНИЕ!', description=ctx.author.mention + ', выполнение этой команды доступно только владельцу приложения', color=0xd40000)
+        # Отправляем информационное сообщение и удаляем его через 13 секунд
+        await ctx.send(embed=emSlashErrorNotOwner, delete_after=13)
         return
 
     await ctx.send(str(error), delete_after=13)
 
 
-# ------------- ОБРАБАТЫВАВАЕМ ОШБИКИ КОММАНД // КОНЕЦ
+# ------------- РЕГИСТРИРУЕМ ОШИБКИ КОМАНД С КОСОЙ ЧЕРТОЙ И СООБЩАЕМ ОБ ЭТОМ ПОЛЬЗОВАТЕЛЯМ // КОНЕЦ
 
 
-# Логирование слэш-команд
+# ------------- РЕГИСТРИРУЕМ КОМАНДЫ С КОСОЙ ЧЕРТОЙ
 @client.event
 async def on_slash_command(ctx):
     logger.info(f'Got slash command; {ctx.guild} / {ctx.author} / command: {ctx.name};'
                 f' subcommand_name: {ctx.subcommand_name};'
                 f' subcommand_group: {ctx.subcommand_group}; options: {ctx.data.get("options")}')
+
+
+# ------------- РЕГИСТРИРУЕМ КОМАНДЫ С КОСОЙ ЧЕРТОЙ // КОНЕЦ
 
 
 # ------------- ВЫВОДИМ СООБЩЕНИЯ ПОЛЬЗОВАТЕЛЕЙ В КОНСОЛЬ ПРИЛОЖЕНИЯ И ПЕРЕНАПРАВЛЯЕМ НА ДРУГИЕ СЕРВЕРА
@@ -235,7 +250,7 @@ async def help_(ctx):
     emHelp.add_field(name='Дополнительная информация',
                      value='Дополнительную информацию о приложение можно запросить командой `information`',
                      inline=False)
-    # Отправляем информационное сообщение и удаляем его через 13 секунд
+    # Отправляем информационное сообщение и удаляем его через 60 секунд
     await ctx.send(embed=emHelp, delete_after=60)
 
 
@@ -249,7 +264,7 @@ async def help_(ctx):
 async def information(ctx):
     # Создаём сообщение
     emInformation = discord.Embed(title='ИНФОРМАЦИЯ',
-                                  description=config.information_text.format(
+                                  description=config.client_full_description.format(
                                       invite_link=get_invite_link(client.user.id)),
                                   colour=0x2F3136)
     emInformation.add_field(name='Разработчики ', value='• <@420130693696323585>\n• <@665018860587450388>')
@@ -305,6 +320,7 @@ async def blacklist_add(ctx, userid, reason=None):
 # ------------- КОМАНДА ЗАПИСИ ПОЛЬЗОВАТЕЛЯ В ЧЁРНЫЙ СПИСОК // КОНЕЦ
 
 
+# ------------- КОМАНДА ОТОБРАЖЕНИЯ ЧЁРНОГО СПИСОКА
 # Показ содержимого чёрного списка
 # TODO: Нормальное форматирование таблицы
 @slash.subcommand(
@@ -323,7 +339,10 @@ async def blacklist_show(ctx):
     await ctx.send(table, delete_after=13)
 
 
-# Удаление пользователя из чёрного списка
+# ------------- КОМАНДА ОТОБРАЖЕНИЯ ЧЁРНОГО СПИСОКА // КОНЕЦ
+
+
+# ------------- КОМАНДА УДАЛЕНИЯ ПОЛЬЗОВАТЕЛЯ ИЗ ЧЁРНОГО СПИСКА
 @commands.is_owner()
 @slash.subcommand(
     base='blacklist',
@@ -350,23 +369,10 @@ async def blacklist_remove(ctx, userid):
     await ctx.send('Пользователь успешно удалён из чёрного списка', delete_after=13)
 
 
+# ------------- КОМАНДА УДАЛЕНИЯ ПОЛЬЗОВАТЕЛЯ ИЗ ЧЁРНОГО СПИСКА // КОНЕЦ
+
+
 # ------------- КОМАНДА ВЫВОДА СПИСКА СЕРВЕРОВ
-@slash.slash(name="server_leave",
-             description="Покинуть сервер",
-             guild_ids=guild_ids_for_slash())
-# Команду может выполнить только владелец приложения
-@commands.is_owner()
-async def server_leave(ctx, id_to_leave: int):
-    if guild_to_leave := client.get_guild(id_to_leave) is None:
-        await ctx.send('Сервер с указанным ID не найден', delete_after=13)
-        return
-    await guild_to_leave.leave()
-    await ctx.send('Сервер с указанным ID успешно покинут', delete_after=13)
-
-
-# ------------- КОМАНДА ВЫВОДА СПИСКА СЕРВЕРОВ // КОНЕЦ
-
-
 # Команду может выполнить только владелец приложения
 # @commands.is_owner()
 @slash.slash(name="servers_list",
@@ -385,7 +391,22 @@ async def servers_list(ctx):
     await ctx.send(embed=emServers, delete_after=60)
 
 
+# ------------- КОМАНДА ВЫВОДА СПИСКА СЕРВЕРОВ // КОНЕЦ
+
+
 # ------------- КОМАНДА ОТКЛЮЧЕНИЯ ПРИЛОЖЕНИЯ ОТ СЕРВЕРА
+@slash.slash(name="server_leave",
+             description="Покинуть сервер",
+             guild_ids=guild_ids_for_slash())
+# Команду может выполнить только владелец приложения
+@commands.is_owner()
+async def server_leave(ctx, id_to_leave: int):
+    if guild_to_leave := client.get_guild(id_to_leave) is None:
+        await ctx.send('Сервер с указанным ID не найден', delete_after=13)
+        return
+    await guild_to_leave.leave()
+    await ctx.send('Сервер с указанным ID успешно покинут', delete_after=13)
+
 
 # ------------- КОМАНДА ОТКЛЮЧЕНИЯ ПРИЛОЖЕНИЯ ОТ СЕРВЕРА // КОНЕЦ
 
