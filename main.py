@@ -15,8 +15,7 @@ import config  # Импортируем настройки приложения
 
 
 # ------------- СОЗДАЁМ ПРИЛОЖЕНИЕ И НАЗЫВАЕМ ЕГО CLIENT
-client = commands.Bot(description=config.bot_description, command_prefix=commands.when_mentioned_or(config.prefix),
-                      case_insensitive=True, help_command=None)
+client = commands.Bot(description=config.bot_description, command_prefix=None, help_command=None)
 
 # ------------- СОЗДАЁМ ОБРАБОТКУ КОМАНДЫ С КОСОЙ ЧЕРТОЙ ЧЕРЕЗ СОЗДАННОЕ ПРИЛОЖЕНИЕ
 slash = SlashCommand(client, sync_commands=True)
