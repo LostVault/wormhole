@@ -9,9 +9,6 @@ token = environ['WORMHOLE_TOKEN_DISCORD']
 # no variable with such name in environment, so no checks required
 globalchannel = environ['WORMHOLE_GLOBALCHANNEL']
 
-# Префикс команд:
-prefix = '!'
-
 # Тип окружения, в котором производится запуск, подробности в README.md
 environment_type = environ['WORMHOLE_ENVIRONMENT'].lower()
 assert environment_type in ['test', 'prod'], f"Wrong environment type: {environment_type}, must be 'test' or 'prod'"
