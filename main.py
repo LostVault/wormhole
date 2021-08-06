@@ -82,8 +82,8 @@ async def on_ready():
 
     # Показывает ID приложения указанное на discordapp.com
     logger.info('APP Client ID: {0.user.id} '.format(client))
-    logger.info('Link for connection: https://discordapp.com/oauth2/authorize?&client_id={0.user.id}'
-                '&permissions=0&scope=bot%20applications.commands=bot&permissions=0'.format(client))
+    logger.info(f'Link for connection: https://discord.com/api/oauth2/authorize?client_id={client.user.id}&'
+                f'permissions=0&scope=bot%20applications.commands')
 
     # Выводит список серверов, к которым подключено приложение
     logger.info('Servers connected to: '.join(guild.name for guild in client.guilds))
