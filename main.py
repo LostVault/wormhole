@@ -104,12 +104,13 @@ async def on_ready():
 @client.event
 async def on_slash_command_error(ctx, error):
     logger.warning(
-        f"An error occurred: {ctx.guild} / {ctx.author} / command: {ctx.name}, args: {ctx.args}; Error: {error}")
+        f"An error occurred: {ctx.guild} / {ctx.author} / command: {ctx.name}; Error: {error}")
     if isinstance(error, discord.ext.commands.NotOwner):
         await ctx.send('Эта команда доступна только для владельца приложения', delete_after=13)
         return
 
     await ctx.send(str(error), delete_after=13)
+
 
 # ------------- ОБРАБАТЫВАВАЕМ ОШБИКИ КОММАНД // КОНЕЦ
 
@@ -119,7 +120,7 @@ async def on_slash_command_error(ctx, error):
 async def on_slash_command(ctx):
     logger.info(f'Got slash command; {ctx.guild} / {ctx.author} / command: {ctx.name};'
                 f' subcommand_name: {ctx.subcommand_name};'
-                f' subcommand_group: {ctx.subcommand_group}; args: {ctx.args}; kwargs: {ctx.kwargs}')
+                f' subcommand_group: {ctx.subcommand_group}; options: {ctx.data["options"]}')
 
 
 # ------------- ВЫВОДИМ СООБЩЕНИЯ ПОЛЬЗОВАТЕЛЕЙ В КОНСОЛЬ ПРИЛОЖЕНИЯ И ПЕРЕНАПРАВЛЯЕМ НА ДРУГИЕ СЕРВЕРА
@@ -296,7 +297,7 @@ async def information(ctx):
             description='reason to ban',
             option_type=3,
             required=False
-            )])
+        )])
 async def blacklist_add(ctx, userid, reason=None):
     is_userid_banned = bool((await (await client.sql_conn.execute('select count(*) from black_list where userid = ?;',
                                                                   [userid])).fetchone())[0])
@@ -315,6 +316,7 @@ async def blacklist_add(ctx, userid, reason=None):
         color=0xd40000)
     await ctx.send(embed=emBlackListAdd, delete_after=13)
 
+
 # ------------- КОМАНДА ЗАПИСИ ПОЛЬЗОВАТЕЛЯ В ЧЁРНЫЙ СПИСОК // КОНЕЦ
 
 
@@ -326,7 +328,7 @@ async def blacklist_add(ctx, userid, reason=None):
     guild_ids=guild_ids_for_slash(),
     base_desc='Действия с чёрным списком',
     description='Показать чёрный список'
-    )
+)
 async def blacklist_show(ctx):
     full_list = await client.sql_conn.execute('select userid, add_timestamp, reason, banner_id from black_list')
     table = ['userid    add_timestamp   reason  banner_id']
@@ -403,17 +405,27 @@ async def servers_list(ctx):
 
 
 # ------------- КОМАНДА СОЗДАНИЯ КАНАЛА ДЛЯ ПРИЁМА И ОТПРАВКИ СООБЩЕНИЙ
-# @slash.slash(name="setup",
-#             description="Создать канала для приёма и передачи сообщений",
-#             guild_ids=guild_ids_for_slash())
+@slash.slash(name="setup",
+             description="Создать канала для приёма и передачи сообщений",
+             guild_ids=guild_ids_for_slash())
 # Команду может выполнить только пользователь, с ролью администратор
-# @has_permissions(administrator=True)
-# async def setup(ctx):
-#    # Удаляем сообщение, отправленное пользователем
-#    await ctx.message.delete()
-#    # Создаём канал
-#    guild = ctx.message.guild
-#    await guild.create_text_channel(name='wormhole')
+async def setup(ctx):
+    if ctx.channel is None:  # проверка, не в лс ли идёт команда
+        await ctx.send('Использование этой команды допускается только на серверах, не в личных сообщениях',
+                       delete_after=13)
+        return
+
+    if ctx.author.server_permissions.administrator:  # проверка на наличие админских прав у выполняющего
+        guild = ctx.message.guild
+        if discord.utils.get(guild.text_channels, name=config.globalchannel) is None:  # проверка на наличие нужного канала # noqa:E501
+            await guild.create_text_channel(name=config.globalchannel)
+            await ctx.send(
+                f'Канал {config.globalchannel} успешно создан и будет использоваться для пересылки сообщений')
+        else:
+            await ctx.send(f'У вас уже есть подходящий канал: {config.globalchannel}')
+    else:
+        await ctx.send('Для выполнения этой команды вам необходимо обладать правами администратора на этом сервере',
+                       delete_after=13)
 
 
 # ------------- КОМАНДА СОЗДАНИЯ КАНАЛА ДЛЯ ПРИЁМА И ОТПРАВКИ СООБЩЕНИЙ // КОНЕЦ
