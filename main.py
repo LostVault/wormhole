@@ -92,7 +92,7 @@ async def on_ready():
     await client.change_presence(status=discord.Status.online, activity=discord.Game('Elite Dangerous'))
 
     # Отправляем сообщение в общий канал
-    emStatusOn = discord.Embed(title='⚠ • ВНИМАНИЕ!', description='Приложение запущено.', colour=0x90D400)
+    emStatusOn = discord.Embed(title='⚠ • ВНИМАНИЕ!', description='Приложение запущено', colour=0x90D400)
     emStatusOn.set_image(
         url="https://media.discordapp.net/attachments/682731260719661079/682731350922493952/ED1.gif")
     await send_to_servers(embed=emStatusOn, delete_after=13)
@@ -152,15 +152,14 @@ async def on_message(message):
     if message.mentions or message.mention_everyone:
         await message.delete()
         await message.channel.send(
-            '` ⚠ • ВНИМАНИЕ! ` Сообщения, с упоминанием всех активных и неактивных пользователей, не пропускаются в '
-            'общий чат.'.format(
-                message), delete_after=13)
+            'Сообщения, с упоминанием всех активных и неактивных пользователей, не пропускаются в '
+            'общий чат', delete_after=13)
         return
 
     # Игнорируем сообщения с символом @
     if "@" in message.content:
         await message.delete()
-        await message.channel.send('` ⚠ • ВНИМАНИЕ! ` Упс! Что-то пошло не так.'.format(message), delete_after=13)
+        await message.channel.send('` ⚠ • ВНИМАНИЕ! ` Упс! Что-то пошло не так'.format(message), delete_after=13)
         return
 
     # Игнорируем сообщения, отправленные пользователем из чёрного списка
@@ -168,9 +167,9 @@ async def on_message(message):
             'select count(*) from black_list where userid = ?;', [message.author.id])).fetchone())[0] == 1:
         await message.delete()
         await message.channel.send(
-            '` ⚠ • ВНИМАНИЕ! ` Пользователи, находящиеся в списке **Black Overlord List**, не могут отправлять '
-            'сообщения на другие сервера.'.format(
-                message), delete_after=13)
+            'Сообщение пользователей из чёрного списка не допускаются к пересылке\n Вам по прежнему доступно '
+            'использование команд приложения',
+            delete_after=13)
         return
 
     # Создаём сообщение
@@ -199,7 +198,7 @@ async def on_message(message):
 
 # ------------- КОМАНДА ПРОВЕРКА ПРИЛОЖЕНИЯ
 @slash.slash(name="ping",
-             description="Проверить состояние приложения.",
+             description="Проверить состояние приложения",
              guild_ids=guild_ids_for_slash())
 async def ping(ctx):
     # Создаём информационное сообщение
@@ -216,7 +215,7 @@ async def ping(ctx):
 
 # ------------- КОМАНДА ПОМОЩИ
 @slash.slash(name="help",
-             description="Показать информацию о командах используемых приложением.",
+             description="Показать информацию о командах используемых приложением",
              guild_ids=guild_ids_for_slash())
 async def help_(ctx):
     # Создаём информационное сообщение
@@ -244,7 +243,7 @@ async def help_(ctx):
 
 # ------------- КОМАНДА ОТОБРАЖЕНИЯ ИНФОРМАЦИИ О ПРИЛОЖЕНИИ
 @slash.slash(name="information",
-             description="Показать информацию о приложение.",
+             description="Показать информацию о приложение",
              guild_ids=guild_ids_for_slash())
 async def information(ctx):
     # Создаём сообщение
@@ -388,7 +387,7 @@ async def server_leave(ctx, id_to_leave: int):
 async def servers_list(ctx):
     # Создаём сообщение
     emServers = discord.Embed(title='СПИСОК СЕРВЕРОВ',
-                              description='Список серверов, к которым подключено приложение.',
+                              description='Список серверов, к которым подключено приложение',
                               colour=0x2F3136)
     emServers.add_field(
         name='Список серверов',
