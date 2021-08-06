@@ -196,11 +196,12 @@ async def on_message(message):
 @slash.slash(name="ping",
              description="Проверить состояние приложения.",
              guild_ids=guild_ids_for_slash())
-# Команду может выполнить только владелец приложения
-# @commands.is_owner()
 async def ping(ctx):
     # Создаём информационное сообщение
-    emPing = discord.Embed(title='⚠ • ВНИМАНИЕ!', description='Получен ответ.', colour=0x90D400)
+    emPing = discord.Embed(
+        title='⚠ • ВНИМАНИЕ!',
+        description=f'Latency {round(client.latency * 100, 1)} ms',
+        colour=0x90D400)
     # Отправляем информационное сообщение и удаляем его через 13 секунд
     await ctx.send(embed=emPing, delete_after=13)
 
