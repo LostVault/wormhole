@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # ------------- ИМПОРТ МОДУЛЕЙ
-
+import asyncio
 import logging  # Импортируем модуль логирования
 
 import aiosqlite  # Импортируем модуль работы с базами SQLite
@@ -10,6 +10,7 @@ from discord_slash import SlashCommand, SlashContext  # Импортируем �
 from discord_slash.utils.manage_commands import create_choice, create_option
 
 import config  # Импортируем настройки приложения
+import signal
 
 # ------------- ИМПОРТ МОДУЛЕЙ // КОНЕЦ
 
@@ -42,6 +43,7 @@ async def send_to_servers(*args, **kwargs):
     :param kwargs:
     :return:
     """
+    logger.debug(f"Sending to servers {args} {kwargs}")
     for guild in client.guilds:
         if channel := discord.utils.get(guild.text_channels, name=config.globalchannel):
             try:
@@ -435,12 +437,26 @@ async def setup(ctx):
         await ctx.send('Для выполнения этой команды вам необходимо обладать правами администратора на этом сервере',
                        delete_after=13)
 
-
 # ------------- КОМАНДА СОЗДАНИЯ КАНАЛА ДЛЯ ПРИЁМА И ОТПРАВКИ СООБЩЕНИЙ // КОНЕЦ
 
+
+async def shutdown_async():
+    await send_to_servers(content='Выключение', delete_after=13)
+    await client.change_presence(status=discord.Status.offline)
+    await client.close()
+
+
+def shutdown(sig, frame):
+    logger.info(f'Shutting down by signal: {sig}')
+    asyncio.create_task(shutdown_async())
+
+
+signal.signal(signal.SIGTERM, shutdown)
+signal.signal(signal.SIGINT, shutdown)
 
 # Генерируемый токен при создание приложения на discordapp.com, необходимый для подключения к серверу. //
 # Прописывается в config.py
 client.run(config.token)
+logger.info('Exited')
 
 # ------------- СОЗДАЁМ ПРИЛОЖЕНИЕ И НАЗЫВАЕМ ЕГО CLIENT  // КОНЕЦ
