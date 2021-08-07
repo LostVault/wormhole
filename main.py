@@ -441,6 +441,7 @@ async def setup(ctx):
 
 
 async def shutdown_async():
+    logger.info('Executing shutdown_async')
     await send_to_servers(content='Выключение', delete_after=13)
     await client.change_presence(status=discord.Status.offline)
     await client.close()
@@ -457,6 +458,6 @@ signal.signal(signal.SIGINT, shutdown)
 # Генерируемый токен при создание приложения на discordapp.com, необходимый для подключения к серверу. //
 # Прописывается в config.py
 client.run(config.token)
-logger.info('Exited')
+logger.info('Exited. You can safely kill the process')
 
 # ------------- СОЗДАЁМ ПРИЛОЖЕНИЕ И НАЗЫВАЕМ ЕГО CLIENT  // КОНЕЦ
