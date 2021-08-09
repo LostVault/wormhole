@@ -401,7 +401,7 @@ async def servers_list(ctx):
              guild_ids=guild_ids_for_slash())
 # Команду может выполнить только владелец приложения
 @commands.is_owner()
-async def server_leave(ctx, id_to_leave: int):
+async def server_leave(ctx, id_to_leave: str):  # TODO: test it
     if guild_to_leave := client.get_guild(id_to_leave) is None:
         await ctx.send('Сервер с указанным ID не найден', delete_after=13)
         return
