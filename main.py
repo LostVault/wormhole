@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # ------------- ИМПОРТ МОДУЛЕЙ
-import asyncio
+import asyncio  # Какая-то непонятная штука ᓚᘏᗢ
 import logging  # Импортируем модуль логирования
 
 import aiosqlite  # Импортируем модуль работы с базами SQLite
@@ -10,7 +10,7 @@ from discord_slash import SlashCommand, SlashContext  # Импортируем �
 from discord_slash.utils.manage_commands import create_choice, create_option
 
 import config  # Импортируем настройки приложения
-import signal
+import signal  # Какая-то непонятная штука ᓚᘏᗢ
 
 # ------------- ИМПОРТ МОДУЛЕЙ // КОНЕЦ
 
@@ -35,7 +35,7 @@ logger.setLevel(logging.INFO)
 # ------------- РЕГИСТРИРУЕМ СОБЫТИЯ ПРИЛОЖЕНИЯ // КОНЕЦ
 
 
-# ------------- СКРИПТ ШАБЛОН ДЛЯ ПЕРЕСЫЛКИ СООБЩЕНИЯ НА ВСЕ СЕРВЕРА
+# ------------- СОЗДАЁМ ШАБЛОН ДЛЯ ПЕРЕСЫЛКИ СООБЩЕНИЯ НА ВСЕ СЕРВЕРА
 async def send_to_servers(*args, **kwargs):
     """
     send message to all connected servers to config.globalchannel channel, arguments as for channel.send()
@@ -56,7 +56,7 @@ async def send_to_servers(*args, **kwargs):
                 logger.warning(f"Failed to send message to {guild.name}: {e}")
 
 
-# ------------- СКРИПТ ШАБЛОН ДЛЯ ПЕРЕСЫЛКИ СООБЩЕНИЯ НА ВСЕ СЕРВЕРА // КОНЕЦ
+# ------------- СОЗДАЁМ ШАБЛОН ДЛЯ ПЕРЕСЫЛКИ СООБЩЕНИЯ НА ВСЕ СЕРВЕРА // КОНЕЦ
 
 
 # ------------- КАКАЯ-ТО НЕПОНЯТНАЯ ШТУКА ᓚᘏᗢ
@@ -78,24 +78,23 @@ def get_invite_link(bot_id):
 # ------------- СОЗДАЁМ ШАБЛОН С ССЫЛКОЙ ДЛЯ ПОДКЛЮЧЕНИЯ ПРИЛОЖЕНИЯ К СЕРВЕРУ // КОНЕЦ
 
 
-# ------------- ВЫВОДИМ ДАННЫЕ ПРИЛОЖЕНИЯ ПРИ ПОДКЛЮЧЕНИЕ В КОНСОЛЬ
+# ------------- ВЫВОДИМ ДАННЫЕ ПРИЛОЖЕНИЯ ПРИ ПОДКЛЮЧЕНИЕ В КОНСОЛЬ PYTHON
 @client.event
 async def on_ready():
     client.sql_conn = await aiosqlite.connect(config.db_file_name)
     await client.sql_conn.execute('create table if not exists black_list (userid integer not null unique, '
                                   'add_timestamp text default current_timestamp, reason text, banner_id integer);')
 
-    # Показывает имя приложения, указанное на discordapp.com
+    # Console Log // Выводим данные приложения в консоль Python
     logger.info(f'APP Username: {client.user} ')
     logger.info(f'Using token {config.token[0:2]}...{config.token[-3:-1]}')
     logger.info(f'Current env type: {config.environment_type}')
     logger.info(f'Using global channel {config.globalchannel}')
-
-    # Показывает ID приложения указанное на discordapp.com
     logger.info('APP Client ID: {0.user.id} '.format(client))
+    # Console Log // Выводим ссылку для подключения приложения к серверу в консоль Python
     logger.info(f'Link for connection: {get_invite_link(client.user.id)}')
 
-    # Выводит список серверов, к которым подключено приложение
+    # Console Log // Выводим список серверов к которым подключено приложение в консоль Python
     logger.info('Servers connected to: ' + ''.join('"' + guild.name + '"; ' for guild in client.guilds))
 
     # Изменяем статус приложения
@@ -108,7 +107,7 @@ async def on_ready():
     await send_to_servers(embed=emStatusOn, delete_after=13)
 
 
-# ------------- ВЫВОДИМ ДАННЫЕ ПРИЛОЖЕНИЯ ПРИ ПОДКЛЮЧЕНИЕ В КОНСОЛЬ // КОНЕЦ
+# ------------- ВЫВОДИМ ДАННЫЕ ПРИЛОЖЕНИЯ ПРИ ПОДКЛЮЧЕНИЕ В КОНСОЛЬ PYTHON // КОНЕЦ
 
 
 # ------------- РЕГИСТРИРУЕМ ОШИБКИ КОМАНД С КОСОЙ ЧЕРТОЙ И СООБЩАЕМ ОБ ЭТОМ ПОЛЬЗОВАТЕЛЯМ
@@ -132,7 +131,7 @@ async def on_slash_command_error(ctx, error):
 # ------------- РЕГИСТРИРУЕМ ОШИБКИ КОМАНД С КОСОЙ ЧЕРТОЙ И СООБЩАЕМ ОБ ЭТОМ ПОЛЬЗОВАТЕЛЯМ // КОНЕЦ
 
 
-# ------------- РЕГИСТРИРУЕМ КОМАНДЫ С КОСОЙ ЧЕРТОЙ
+# ------------- ВЫВОДИМ ИСПОЛЬЗОВАНИЕ КОМАНД С КОСОЙ ЧЕРТОЙ В КОНСОЛЬ PYTHON
 @client.event
 async def on_slash_command(ctx):
     logger.info(f'Got slash command; {ctx.guild} / {ctx.author} / command: {ctx.name};'
@@ -140,7 +139,7 @@ async def on_slash_command(ctx):
                 f' subcommand_group: {ctx.subcommand_group}; options: {ctx.data.get("options")}')
 
 
-# ------------- РЕГИСТРИРУЕМ КОМАНДЫ С КОСОЙ ЧЕРТОЙ // КОНЕЦ
+# ------------- ВЫВОДИМ ИСПОЛЬЗОВАНИЕ КОМАНД С КОСОЙ ЧЕРТОЙ В КОНСОЛЬ PYTHON // КОНЕЦ
 
 
 # ------------- ВЫВОДИМ СООБЩЕНИЯ ПОЛЬЗОВАТЕЛЕЙ В КОНСОЛЬ ПРИЛОЖЕНИЯ И ПЕРЕНАПРАВЛЯЕМ НА ДРУГИЕ СЕРВЕРА
@@ -150,7 +149,7 @@ async def on_message(message):
     if message.author.id == client.user.id:
         return
 
-    # Логирует сообщения в консоль приложения
+    # Console Log // Выводим сообщения пользователей в консоль Python
     logger.info('Message: {0.guild} / #{0.channel} / {0.author}: {0.content}'.format(message))
 
     # Игнорируем сообщения в ЛС
@@ -173,7 +172,7 @@ async def on_message(message):
             'общий чат', delete_after=13)
         return
 
-    # Игнорируем сообщения с символом @
+    # Игнорируем сообщения с символом "@"
     if "@" in message.content:
         await message.delete()
         await message.channel.send('` ⚠ • ВНИМАНИЕ! ` Упс! Что-то пошло не так'.format(message), delete_after=13)
@@ -193,13 +192,14 @@ async def on_message(message):
     emGlobalMessage = discord.Embed(description=f" **{message.author.name}**: {message.content}", colour=0x2F3136)
     emGlobalMessage.set_footer(icon_url=message.guild.icon_url,
                                text=f"Сервер: {message.guild.name} // ID пользователя: {message.author.id}")
-
+    
+    # Проверяем расширение файлов
     for attachment in message.attachments:
         if attachment.filename.endswith(('bmp', 'jpeg', 'jpg', 'png', 'gif')):
             emGlobalMessage.set_image(url=attachment.url)
         else:
             await message.delete()
-            await message.channel.send('К пересылке допускаются только файлы с расширениями bmp, jpeg, jpg, png, gif',
+            await message.channel.send('К пересылке допускаются только файлы с расширениями `*.bmp`, `*.jpeg`, `*.jpg`, `*.png`, `*.gif`.',
                                        delete_after=13)
             return
 
@@ -268,7 +268,7 @@ async def information(ctx):
                                   description=config.client_full_description.format(
                                       invite_link=get_invite_link(client.user.id)),
                                   colour=0x2F3136)
-    emInformation.add_field(name='Разработчики ', value='• <@420130693696323585>\n• <@665018860587450388>')
+    emInformation.add_field(name='Разработчики', value='• <@420130693696323585>\n• <@665018860587450388>')
     emInformation.add_field(name='Благодарности', value='• <@478527700710195203>')
     # emInformation.add_field(name='Список серверов', value="".join(guild.name + '\n' for guild in client.guilds))
     emInformation.set_footer(text=client.user.name)
@@ -437,9 +437,11 @@ async def setup(ctx):
         await ctx.send('Для выполнения этой команды вам необходимо обладать правами администратора на этом сервере',
                        delete_after=13)
 
+        
 # ------------- КОМАНДА СОЗДАНИЯ КАНАЛА ДЛЯ ПРИЁМА И ОТПРАВКИ СООБЩЕНИЙ // КОНЕЦ
 
 
+# ------------- КАКАЯ-ТО НЕПОНЯТНАЯ ШТУКА ᓚᘏᗢ
 async def shutdown_async():
     logger.info('Executing shutdown_async')
     await send_to_servers(content='Выключение', delete_after=13)
@@ -455,9 +457,16 @@ def shutdown(sig, frame):
 signal.signal(signal.SIGTERM, shutdown)
 signal.signal(signal.SIGINT, shutdown)
 
-# Генерируемый токен при создание приложения на discordapp.com, необходимый для подключения к серверу. //
+
+# ------------- КАКАЯ-ТО НЕПОНЯТНАЯ ШТУКА ᓚᘏᗢ // КОНЕЦ
+
+
+# Генерируемый токен при создание приложения на странице https://discord.com/developers/applications, необходимый для подключения к серверу
 # Прописывается в config.py
 client.run(config.token)
+
+# Console Log // Выводим сообщение об отключение приложения в консоль Python
 logger.info('Exited. You can safely kill the process')
+
 
 # ------------- СОЗДАЁМ ПРИЛОЖЕНИЕ И НАЗЫВАЕМ ЕГО CLIENT  // КОНЕЦ
