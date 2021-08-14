@@ -447,7 +447,7 @@ async def setup(ctx):
 # ------------- КАКАЯ-ТО НЕПОНЯТНАЯ ШТУКА ᓚᘏᗢ
 async def shutdown_async():
     logger.info('Executing shutdown_async')
-    await send_to_servers(content='Выключение', delete_after=13)
+    # await send_to_servers(content='Выключение', delete_after=13)
     await client.change_presence(status=discord.Status.offline)
     await client.close()
 
