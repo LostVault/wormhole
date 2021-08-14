@@ -6,12 +6,13 @@ import logging  # Импортируем модуль логирования
 import aiosqlite  # Импортируем модуль работы с базами SQLite
 import discord  # Импортируем основной модуль
 from discord.ext import commands  # Импортируем команды из модуля discord.ext
-from discord_slash import SlashCommand, SlashContext  # Импортируем модуль команд с косой чертой (slash)
-from discord_slash.utils.manage_commands import create_choice, create_option
+from discord_slash import SlashCommand  # Импортируем модуль команд с косой чертой (slash)
+from discord_slash.utils.manage_commands import create_option
 
 import config  # Импортируем настройки приложения
 import signal  # Какая-то непонятная штука ᓚᘏᗢ
 
+sql_conn: aiosqlite.Connection
 # ------------- ИМПОРТ МОДУЛЕЙ // КОНЕЦ
 
 
@@ -81,9 +82,10 @@ def get_invite_link(bot_id):
 # ------------- ВЫВОДИМ ДАННЫЕ ПРИЛОЖЕНИЯ ПРИ ПОДКЛЮЧЕНИЕ В КОНСОЛЬ PYTHON
 @client.event
 async def on_ready():
-    client.sql_conn = await aiosqlite.connect(config.db_file_name)
-    await client.sql_conn.execute('create table if not exists black_list (userid integer not null unique, '
-                                  'add_timestamp text default current_timestamp, reason text, banner_id integer);')
+    global sql_conn
+    sql_conn = await aiosqlite.connect(config.db_file_name)
+    await sql_conn.execute('create table if not exists black_list (userid integer not null unique, '
+                           'add_timestamp text default current_timestamp, reason text, banner_id integer);')
 
     # Console Log // Выводим данные приложения в консоль Python
     logger.info(f'APP Username: {client.user} ')
@@ -179,7 +181,7 @@ async def on_message(message):
         return
 
     # Игнорируем сообщения, отправленные пользователем из чёрного списка
-    if (await (await client.sql_conn.execute(
+    if (await (await sql_conn.execute(
             'select count(*) from black_list where userid = ?;', [message.author.id])).fetchone())[0] == 1:
         await message.delete()
         await message.channel.send(
@@ -192,15 +194,16 @@ async def on_message(message):
     emGlobalMessage = discord.Embed(description=f" **{message.author.name}**: {message.content}", colour=0x2F3136)
     emGlobalMessage.set_footer(icon_url=message.guild.icon_url,
                                text=f"Сервер: {message.guild.name} // ID пользователя: {message.author.id}")
-    
+
     # Проверяем расширение файлов
     for attachment in message.attachments:
         if attachment.filename.endswith(('bmp', 'jpeg', 'jpg', 'png', 'gif')):
             emGlobalMessage.set_image(url=attachment.url)
         else:
             await message.delete()
-            await message.channel.send('К пересылке допускаются только файлы с расширениями `*.bmp`, `*.jpeg`, `*.jpg`, `*.png`, `*.gif`.',
-                                       delete_after=13)
+            await message.channel.send(
+                'К пересылке допускаются только файлы с расширениями `*.bmp`, `*.jpeg`, `*.jpg`, `*.png`, `*.gif`.',
+                delete_after=13)
             return
 
     # Удаляем сообщение, отправленное пользователем
@@ -300,15 +303,15 @@ async def information(ctx):
             required=False
         )])
 async def blacklist_add(ctx, userid, reason=None):
-    is_userid_banned = bool((await (await client.sql_conn.execute('select count(*) from black_list where userid = ?;',
-                                                                  [userid])).fetchone())[0])
+    is_userid_banned = bool((await (await sql_conn.execute('select count(*) from black_list where userid = ?;',
+                                                           [userid])).fetchone())[0])
     if is_userid_banned:
         await ctx.send('Этот пользователь уже есть в чёрном списке приложения', delete_after=13)
         return
 
-    await client.sql_conn.execute('insert into black_list (userid, reason, banner_id)'
-                                  ' values (?, ?, ?);', [userid, reason, ctx.author.id])
-    await client.sql_conn.commit()
+    await sql_conn.execute('insert into black_list (userid, reason, banner_id)'
+                           ' values (?, ?, ?);', [userid, reason, ctx.author.id])
+    await sql_conn.commit()
 
     # Создаём информационное сообщение
     emBlackListAdd = discord.Embed(
@@ -332,7 +335,7 @@ async def blacklist_add(ctx, userid, reason=None):
     description='Показать чёрный список'
 )
 async def blacklist_show(ctx):
-    full_list = await client.sql_conn.execute('select userid, add_timestamp, reason, banner_id from black_list')
+    full_list = await sql_conn.execute('select userid, add_timestamp, reason, banner_id from black_list')
     table = ['userid    add_timestamp   reason  banner_id']
     for user in (await full_list.fetchall()):
         table.append('   '.join([str(item).center(5, ' ') for item in user]))
@@ -359,14 +362,14 @@ async def blacklist_show(ctx):
             required=True)
     ])
 async def blacklist_remove(ctx, userid):
-    is_userid_banned = bool((await (await client.sql_conn.execute('select count(*) from black_list where userid = ?;',
-                                                                  [userid])).fetchone())[0])
+    is_userid_banned = bool((await (await sql_conn.execute('select count(*) from black_list where userid = ?;',
+                                                           [userid])).fetchone())[0])
     if not is_userid_banned:
         await ctx.send('Этот пользователь не находится чёрном списке приложения', delete_after=13)
         return
 
-    await client.sql_conn.execute('delete from black_list where userid = ?', [userid])
-    await client.sql_conn.commit()
+    await sql_conn.execute('delete from black_list where userid = ?', [userid])
+    await sql_conn.commit()
     await ctx.send('Пользователь успешно удалён из чёрного списка', delete_after=13)
 
 
@@ -437,7 +440,7 @@ async def setup(ctx):
         await ctx.send('Для выполнения этой команды вам необходимо обладать правами администратора на этом сервере',
                        delete_after=13)
 
-        
+
 # ------------- КОМАНДА СОЗДАНИЯ КАНАЛА ДЛЯ ПРИЁМА И ОТПРАВКИ СООБЩЕНИЙ // КОНЕЦ
 
 
@@ -457,16 +460,14 @@ def shutdown(sig, frame):
 signal.signal(signal.SIGTERM, shutdown)
 signal.signal(signal.SIGINT, shutdown)
 
-
 # ------------- КАКАЯ-ТО НЕПОНЯТНАЯ ШТУКА ᓚᘏᗢ // КОНЕЦ
 
 
-# Генерируемый токен при создание приложения на странице https://discord.com/developers/applications, необходимый для подключения к серверу
-# Прописывается в config.py
+# Генерируемый токен при создание приложения на странице https://discord.com/developers/applications, необходимый для
+# подключения к серверу Прописывается в config.py
 client.run(config.token)
 
 # Console Log // Выводим сообщение об отключение приложения в консоль Python
 logger.info('Exited. You can safely kill the process')
-
 
 # ------------- СОЗДАЁМ ПРИЛОЖЕНИЕ И НАЗЫВАЕМ ЕГО CLIENT  // КОНЕЦ
