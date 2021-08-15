@@ -1,16 +1,17 @@
-<p align="center">
-  
+<h1 align="center">
+  <br>
   <img src="sources/images/Wormhole - Logo - Small.png" alt="ᓚᘏᗢ" width="150" height="150">
+  <br>
+  Wormhole
+  <br>
+</h1>
 
-  <h3 align="center">Wormhole</h3>
-
-  <p align="center">
+<p align="center">
     Приложение для обмена текстовыми и файловыми сообщениями между серверами по игре Elite Dangerous в Discord.
     <br/>
     <a href="https://discord.gg/HFqmXPvMxC">Сервер Discord</a>
     •
     <a href="https://discord.com/oauth2/authorize?client_id=876127339161981059&scope=bot%20applications.commands">Подключить Wormhole</a>
-  </p>
 </p>
 
 
