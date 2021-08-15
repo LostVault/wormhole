@@ -58,6 +58,20 @@ async def send_to_servers(*args, **kwargs):
 
 
 # ------------- СОЗДАЁМ ШАБЛОН ДЛЯ ПЕРЕСЫЛКИ СООБЩЕНИЯ НА ВСЕ СЕРВЕРА // КОНЕЦ
+async def fetch_or_get_user(userid: int, suppress=True):
+    user = client.get_user(userid)
+    if user is None:
+        try:
+            user = await client.fetch_user(userid)
+
+        except discord.NotFound:
+            if not suppress:
+                raise
+            user = None
+
+    return user
+
+
 async def get_owners() -> list:
     owners = list()
     appinfo = await client.application_info()
@@ -357,9 +371,13 @@ async def blacklist_add(ctx, user, reason=None):
 )
 async def blacklist_show(ctx):
     full_list = await sql_conn.execute('select userid, add_timestamp, reason, banner_id from black_list')
-    table = ['userid    add_timestamp   reason  banner_id']
+    table = ['username  userid    add_timestamp   reason  banner_id']
     for user in (await full_list.fetchall()):
-        table.append('   '.join([str(item).center(5, ' ') for item in user]))
+        username = await fetch_or_get_user(int(user[0]))
+        if isinstance(username, discord.User):
+            username = username.name
+
+        table.append(str(username) + '   ' + '   '.join([str(item).center(5, ' ') for item in user]))
     table = "```" + '\n'.join(table) + "```"
     await ctx.send(table, delete_after=13)
 
