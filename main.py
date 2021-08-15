@@ -80,6 +80,7 @@ async def get_owners() -> list:
         for team_member in appinfo.team.members:
             owners.append(team_member.id)
 
+    owners = owners + config.additional_owners
     logger.debug('Owners: '.join(str(owner) for owner in owners))
     return owners
 
