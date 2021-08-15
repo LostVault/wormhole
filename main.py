@@ -430,7 +430,7 @@ async def setup(ctx):
         guild = ctx.guild
         if discord.utils.get(guild.text_channels,
                              name=config.globalchannel) is None:  # проверка на наличие нужного канала
-            await guild.create_text_channel(name=config.globalchannel)
+            await guild.create_text_channel(name=config.globalchannel, topic=config.channel_setup_description)
             await ctx.send(
                 f'Канал {config.globalchannel} успешно создан и будет использоваться для пересылки сообщений',
                 delete_after=13)
