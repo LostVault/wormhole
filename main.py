@@ -58,6 +58,21 @@ async def send_to_servers(*args, **kwargs):
 
 
 # ------------- СОЗДАЁМ ШАБЛОН ДЛЯ ПЕРЕСЫЛКИ СООБЩЕНИЯ НА ВСЕ СЕРВЕРА // КОНЕЦ
+async def get_owners() -> list:
+    owners = list()
+    appinfo = await client.application_info()
+    owners.append(appinfo.owner.id)
+    if appinfo.team is not None:
+        for team_member in appinfo.team.members:
+            owners.append(team_member.id)
+
+    logger.debug('Owners: '.join(str(owner) for owner in owners))
+    return owners
+
+
+async def raise_for_owner(ctx):
+    if ctx.author.id not in await get_owners():
+        raise discord.ext.commands.NotOwner
 
 
 # ------------- КАКАЯ-ТО НЕПОНЯТНАЯ ШТУКА ᓚᘏᗢ
@@ -116,7 +131,7 @@ async def on_ready():
 @client.event
 async def on_slash_command_error(ctx, error):
     logger.warning(
-        f"An error occurred: {ctx.guild} / {ctx.author} / command: {ctx.name}; Error: {error}")
+        f"An error occurred: {ctx.guild} / {ctx.author} / command: {ctx.name}; Error: {error}", exc_info=error)
     if isinstance(error, discord.ext.commands.NotOwner):
         # Создаём информационное сообщение
         emSlashErrorNotOwner = discord.Embed(
@@ -283,7 +298,6 @@ async def information(ctx):
 
 
 # ------------- КОМАНДА ЗАПИСИ ПОЛЬЗОВАТЕЛЯ В ЧЁРНЫЙ СПИСОК
-@commands.is_owner()
 @slash.subcommand(
     base='blacklist',
     name='add',
@@ -303,6 +317,7 @@ async def information(ctx):
             required=False
         )])
 async def blacklist_add(ctx, userid, reason=None):
+    await raise_for_owner(ctx)
     is_userid_banned = bool((await (await sql_conn.execute('select count(*) from black_list where userid = ?;',
                                                            [userid])).fetchone())[0])
     if is_userid_banned:
@@ -347,7 +362,6 @@ async def blacklist_show(ctx):
 
 
 # ------------- КОМАНДА УДАЛЕНИЯ ПОЛЬЗОВАТЕЛЯ ИЗ ЧЁРНОГО СПИСКА
-@commands.is_owner()
 @slash.subcommand(
     base='blacklist',
     name='remove',
@@ -362,6 +376,8 @@ async def blacklist_show(ctx):
             required=True)
     ])
 async def blacklist_remove(ctx, userid):
+    await raise_for_owner(ctx)
+
     is_userid_banned = bool((await (await sql_conn.execute('select count(*) from black_list where userid = ?;',
                                                            [userid])).fetchone())[0])
     if not is_userid_banned:
@@ -378,7 +394,6 @@ async def blacklist_remove(ctx, userid):
 
 # ------------- КОМАНДА ВЫВОДА СПИСКА СЕРВЕРОВ
 # Команду может выполнить только владелец приложения
-# @commands.is_owner()
 @slash.slash(name="servers_list",
              description="Вывести список серверов, где присутствует бот",
              guild_ids=guild_ids_for_slash())
@@ -403,8 +418,9 @@ async def servers_list(ctx):
              description="Покинуть сервер",
              guild_ids=guild_ids_for_slash())
 # Команду может выполнить только владелец приложения
-@commands.is_owner()
 async def server_leave(ctx, id_to_leave: str):  # TODO: test it
+    await raise_for_owner(ctx)
+
     if guild_to_leave := client.get_guild(int(id_to_leave)) is None:  # type: ignore
         await ctx.send('Сервер с указанным ID не найден', delete_after=13)
         return
