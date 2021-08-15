@@ -1,6 +1,19 @@
 # ОСНОВНЫЕ
 from os import environ
 
+"""
+Для запуска приложения необходимо задать три переменные окружения:
+1. `WORMHOLE_TOKEN_DISCORD` - токен для бота, полученный с 
+[Discord портала для разработчиков](https://discord.com/developers/applications)
+2. `WORMHOLE_GLOBALCHANNEL` - имя канала, который будет забриджован. Это название едино для всех серверов.
+3. `WORMHOLE_ENVIRONMENT` - тип окружения, в котором происходит запуск, может быть либо `test`, либо `prod` для
+ тестового и продового окружения соответственно. Различия в функционировании в зависимости от окружения:
+    1. В тестовом окружении для слэш-команд происходит их регистрация на всех серверах, но не глобально, так как 
+    глобальная регистрация может занять до нескольких часов, что не очень удобно при отладке.
+    2. Подход регистрации команд не глобально имеет один минус - при добавлении бота на новые сервер, что бы команды
+     зарегистрировались, нужно перезапустить бота, поэтому в проде используется глобальная регистрация команд. 
+"""
+
 # Токен для авторизации тестового приложения:
 token = environ['WORMHOLE_TOKEN_DISCORD']
 
@@ -9,7 +22,7 @@ token = environ['WORMHOLE_TOKEN_DISCORD']
 # no variable with such name in environment, so no checks required
 globalchannel = environ['WORMHOLE_GLOBALCHANNEL']
 
-# Тип окружения, в котором производится запуск, подробности в README.md
+# Тип окружения, в котором производится запуск
 environment_type = environ['WORMHOLE_ENVIRONMENT'].lower()
 assert environment_type in ['test', 'prod'], f"Wrong environment type: {environment_type}, must be 'test' or 'prod'"
 
