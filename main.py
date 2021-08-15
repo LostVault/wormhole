@@ -487,6 +487,12 @@ async def setup(ctx):
 
 
 # ------------- КОМАНДА СОЗДАНИЯ КАНАЛА ДЛЯ ПРИЁМА И ОТПРАВКИ СООБЩЕНИЙ // КОНЕЦ
+@slash.slash(name="rules",
+             description="Показать правила использования глобального канала",
+             guild_ids=guild_ids_for_slash())
+async def rules_cmd(ctx):
+    embed_rules = discord.Embed(title='Правила', description=config.globalchannel_rules, colour=0x2F3136)
+    await ctx.send(embed=embed_rules, delete_after=60)
 
 
 # ------------- КАКАЯ-ТО НЕПОНЯТНАЯ ШТУКА ᓚᘏᗢ
