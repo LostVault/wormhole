@@ -140,6 +140,21 @@ async def on_ready():
 
 # ------------- ВЫВОДИМ ДАННЫЕ ПРИЛОЖЕНИЯ ПРИ ПОДКЛЮЧЕНИЕ В КОНСОЛЬ PYTHON // КОНЕЦ
 
+@client.event
+async def on_guild_join(guild):
+    logger.info(f'Joining to "{guild.name}" guild')
+    embed_join_new_guild = discord.Embed(title='Присоединение к новому серверу', description=
+                                         f'Поприветствуем новый сервер в нашей сети "{guild.name}" !')
+    await send_to_servers(embed=embed_join_new_guild)
+
+
+@client.event
+async def on_guild_remove(guild):
+    logger.info(f'Leaving "{guild.name}"')
+    embed_guild_leave = discord.Embed(title='Покидание сервера', description=f'Сервер "{guild.name}" был отключён от '
+                                                                             f'системы обмена сообщениями')
+    await send_to_servers(embed=embed_guild_leave)
+
 
 # ------------- РЕГИСТРИРУЕМ ОШИБКИ КОМАНД С КОСОЙ ЧЕРТОЙ И СООБЩАЕМ ОБ ЭТОМ ПОЛЬЗОВАТЕЛЯМ
 @client.event
