@@ -306,7 +306,7 @@ async def information(ctx):
     description='Внести пользователя в чёрный список приложения',
     options=[
         create_option(
-            name='userid',
+            name='user',
             description='userid to ban',
             option_type=6,
             required=True),
@@ -316,8 +316,14 @@ async def information(ctx):
             option_type=3,
             required=False
         )])
-async def blacklist_add(ctx, userid, reason=None):
+async def blacklist_add(ctx, user, reason=None):
     await raise_for_owner(ctx)
+
+    if isinstance(user, str):
+        userid = int(user)
+    else:
+        userid = user.id  # Probably discord.Member or discord.User, anyway, will raise AttributeError if I'm wrong
+
     is_userid_banned = bool((await (await sql_conn.execute('select count(*) from black_list where userid = ?;',
                                                            [userid])).fetchone())[0])
     if is_userid_banned:
@@ -370,13 +376,18 @@ async def blacklist_show(ctx):
     description='Удалить пользователя из чёрного списка приложения',
     options=[
         create_option(
-            name='userid',
+            name='user',
             description='userid to unban',
             option_type=6,
             required=True)
     ])
-async def blacklist_remove(ctx, userid):
+async def blacklist_remove(ctx, user):
     await raise_for_owner(ctx)
+
+    if isinstance(user, str):
+        userid = int(user)
+    else:
+        userid = user.id  # Probably discord.Member or discord.User, anyway, will raise AttributeError if I'm wrong
 
     is_userid_banned = bool((await (await sql_conn.execute('select count(*) from black_list where userid = ?;',
                                                            [userid])).fetchone())[0])
