@@ -506,9 +506,10 @@ async def servers_show(ctx):
 async def server_leave(ctx, id_to_leave: str):  # TODO: test it
     await raise_for_owner(ctx)
 
-    if guild_to_leave := client.get_guild(int(id_to_leave)) is None:  # type: ignore
+    if (guild_to_leave := await client.fetch_guild(int(id_to_leave))) is None:  # type: ignore
         await ctx.send('Сервер с указанным ID не найден', delete_after=13)
         return
+
     await guild_to_leave.leave()
     await ctx.send('Сервер с указанным ID успешно покинут', delete_after=13)
 
