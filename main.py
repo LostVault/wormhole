@@ -158,8 +158,7 @@ async def on_guild_join(guild):
     emAppJoinNewServer.set_thumbnail(url=guild.icon_url)
     emAppJoinNewServer.set_footer(text=client.user.name)
     # Отправляем информационное сообщение и удаляем его через 60 секунд
-    # TODO: Возможно нужно увеличить время до 5 минут или убрать удаление сообщения, чтобы его видели все
-    await send_to_servers(embed=emAppJoinNewServer, delete_after=60)
+    await send_to_servers(embed=emAppJoinNewServer)
 
 
 @client.event
@@ -170,8 +169,7 @@ async def on_guild_remove(guild):
     emAppDisconnectServer = discord.Embed(title='❌ • ВНИМАНИЕ!', description=f'```Сервер "{guild.name}" был отключён от системы обмена сообщениями.```', color=0xd40000)
     emAppDisconnectServer.set_footer(text=client.user.name)
     # Отправляем информационное сообщение и удаляем его через 60 секунд
-    # TODO: Возможно нужно увеличить время до 5 минут или убрать удаление сообщения, чтобы его видели все
-    await send_to_servers(embed=emAppDisconnectServer, delete_after=60)
+    await send_to_servers(embed=emAppDisconnectServer)
 
 
 # ------------- ОПОВЕЩЕНИЕ О ПОДКЛЮЧЕНИЕ/ОТКЛЮЧЕНИЕ ПРИЛОЖЕНИЯ К СЕРВЕРУ // КОНЕЦ
