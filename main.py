@@ -30,7 +30,7 @@ logging.basicConfig(level=logging.WARNING,
                     format='%(asctime)s - %(levelname)s - %(process)d:%(thread)d: %(module)s:%(lineno)d: %(message)s')
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 
 # ------------- РЕГИСТРИРУЕМ СОБЫТИЯ ПРИЛОЖЕНИЯ // КОНЕЦ
@@ -78,13 +78,15 @@ async def fetch_or_get_user(userid: int, suppress=True):
 async def get_owners() -> list:
     owners = list()
     appinfo = await client.application_info()
-    owners.append(appinfo.owner.id)
+
     if appinfo.team is not None:
         for team_member in appinfo.team.members:
             owners.append(team_member.id)
+    else:
+        owners.append(appinfo.owner.id)  # team is also user, yes o_0
 
     owners = owners + config.additional_owners
-    logger.debug('Owners: '.join(str(owner) for owner in owners))
+    logger.debug('Owners: ' + ' '.join(str(owner) for owner in owners))
     return owners
 
 
@@ -557,6 +559,23 @@ async def rules_cmd(ctx):
 
 
 # ------------- КОМАНДА ВЫВОДА ПРАВИЛ ГЛОБАЛЬНОГО КАНАЛА // КОНЕЦ
+
+@slash.slash(
+    name='moderators',
+    description='Показать модераторов глобального канала',
+    guild_ids=guild_ids_for_slash()
+)
+async def rules_cmd(ctx):
+    moderators = str()
+    for moderator_id in await get_owners():
+        moderator_user = await fetch_or_get_user(moderator_id, suppress=False)
+        moderators = f'{moderators}{moderator_user.name}#{moderator_user.discriminator} <@{moderator_user.id}>\n'
+
+    emModers = discord.Embed(
+        title='Модераторы',
+        description=moderators,
+    )
+    await ctx.send(embed=emModers, delete_after=60)
 
 
 # ------------- TODO: Указать комментарий, описывающий данный блок кода ᓚᘏᗢ
