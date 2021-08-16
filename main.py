@@ -276,6 +276,16 @@ async def on_message(message):
         await message.channel.send(embed=emFilterGlobalChatBlackList, delete_after=13)
         return
 
+    # Игнорируем сообщения меньше 3 символов
+    # TODO: Возможно параметр сколько симвлом считать коротким сообщением можно вывести в Конфиг
+    if len(message.clean_content) < 3:
+        await message.delete()
+        # Создаём информационное сообщение
+        emFilterGlobalChatShortMessages = discord.Embed(title='❌ • ВНИМАНИЕ!', description='```Сообщение меньше 3 символов не проускаются в глобальный чат.```', color=0xd40000)
+        # Отправляем информационное сообщение и удаляем его через 13 секунд
+        await message.channel.send(embed=emFilterGlobalChatShortMessages, delete_after=13)
+        return
+
     # Создаём сообщение
     emGlobalMessage = discord.Embed(description=f" **{message.author.name}**: {message.content}", colour=0x2F3136)
     emGlobalMessage.set_footer(icon_url=message.guild.icon_url,
