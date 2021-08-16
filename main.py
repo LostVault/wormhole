@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # ------------- ИМПОРТ МОДУЛЕЙ
-import asyncio  # TODO: Указать кооментарий оисывающий данную строку ᓚᘏᗢ
+import asyncio  # TODO: Указать комментарий, описывающий данную строку ᓚᘏᗢ
 import logging  # Импортируем модуль логирования
 
 import aiosqlite  # Импортируем модуль работы с базами SQLite
@@ -10,7 +10,7 @@ from discord_slash import SlashCommand  # Импортируем модуль к
 from discord_slash.utils.manage_commands import create_option
 
 import config  # Импортируем настройки приложения
-import signal  # TODO: Указать кооментарий оисывающий данную строку ᓚᘏᗢ
+import signal  # TODO: Указать комментарий, описывающий данную строку ᓚᘏᗢ
 
 sql_conn: aiosqlite.Connection
 # ------------- ИМПОРТ МОДУЛЕЙ // КОНЕЦ
@@ -60,7 +60,7 @@ async def send_to_servers(*args, **kwargs):
 # ------------- СОЗДАЁМ ШАБЛОН ДЛЯ ПЕРЕСЫЛКИ СООБЩЕНИЯ НА ВСЕ СЕРВЕРА // КОНЕЦ
 
 
-# ------------- TODO: Указать кооментарий оисывающий данный блок кода ᓚᘏᗢ
+# ------------- TODO: Указать комментарий, описывающий данный блок кода ᓚᘏᗢ
 async def fetch_or_get_user(userid: int, suppress=True):
     user = client.get_user(userid)
     if user is None:
@@ -96,7 +96,7 @@ async def raise_for_owner(ctx):
 # ------------- ᓚᘏᗢ
 
 
-# ------------- TODO: Указать кооментарий оисывающий данный блок кода ᓚᘏᗢ
+# ------------- TODO: Указать комментарий описывающий данный блок кода ᓚᘏᗢ
 def guild_ids_for_slash():
     if config.environment_type == 'prod':
         return None
@@ -154,7 +154,9 @@ async def on_ready():
 async def on_guild_join(guild):
     logger.info(f'Joining to "{guild.name}" guild')
     # Создаём информационное сообщение
-    emAppJoinNewServer = discord.Embed(title='⚠ • ВНИМАНИЕ!', description=f'```Приложение было подключено к новому серверу "{guild.name}"!```', color=0x90D400)
+    emAppJoinNewServer = discord.Embed(title='⚠ • ВНИМАНИЕ!', description=f'```Приложение было подключено к новому '
+                                                                          f'серверу "{guild.name}"!```',
+                                       color=0x90D400)
     emAppJoinNewServer.set_thumbnail(url=guild.icon_url)
     emAppJoinNewServer.set_footer(text=client.user.name)
     # Отправляем информационное сообщение и удаляем его через 60 секунд
@@ -164,9 +166,11 @@ async def on_guild_join(guild):
 @client.event
 async def on_guild_remove(guild):
     logger.info(f'Leaving "{guild.name}"')
-    # Создаём информационное сообщение
-    # TODO: Возможно нужно изменить сообщение на ```Приложение отключено от сервера "{guild.name}" и больше не учавствовать в обмене сообщениями с ним.```
-    emAppDisconnectServer = discord.Embed(title='❌ • ВНИМАНИЕ!', description=f'```Сервер "{guild.name}" был отключён от системы обмена сообщениями.```', color=0xd40000)
+    # Создаём информационное сообщение TODO: Возможно нужно изменить сообщение на ```Приложение отключено от сервера
+    #  "{guild.name}" и больше не учавствовать в обмене сообщениями с ним.```
+    emAppDisconnectServer = discord.Embed(title='❌ • ВНИМАНИЕ!', description=f'```Сервер "{guild.name}" был отключён '
+                                                                             f'от системы обмена сообщениями.```',
+                                          color=0xd40000)
     emAppDisconnectServer.set_footer(text=client.user.name)
     # Отправляем информационное сообщение и удаляем его через 60 секунд
     await send_to_servers(embed=emAppDisconnectServer)
@@ -182,7 +186,11 @@ async def on_slash_command_error(ctx, error):
         f"An error occurred: {ctx.guild} / {ctx.author} / command: {ctx.name}; Error: {error}", exc_info=error)
     if isinstance(error, discord.ext.commands.NotOwner):
         # Создаём информационное сообщение
-        emSlashErrorNotOwner = discord.Embed(title='❌ • ВНИМАНИЕ!', description='```' + ctx.author.mention + ', выполнение этой команды доступно только владельцу приложения.```', color=0xd40000)
+        emSlashErrorNotOwner = discord.Embed(title='❌ • ВНИМАНИЕ!',
+                                             description='```' + ctx.author.mention + ', выполнение этой команды '
+                                                                                      'доступно только владельцу '
+                                                                                      'приложения.```',
+                                             color=0xd40000)
         # Отправляем информационное сообщение и удаляем его через 13 секунд
         await ctx.send(embed=emSlashErrorNotOwner, delete_after=13)
         return
@@ -230,7 +238,11 @@ async def on_message(message):
     if message.mentions or message.mention_everyone:
         await message.delete()
         # Создаём информационное сообщение
-        emFilterGlobalChatEveryone = discord.Embed(title='❌ • ВНИМАНИЕ!', description='```Сообщения с упоминанием всех активных и неактивных пользователей, не пропускаются в глобальный чат.```', color=0xd40000)
+        emFilterGlobalChatEveryone = discord.Embed(title='❌ • ВНИМАНИЕ!', description='```Сообщения с упоминанием '
+                                                                                      'всех активных и неактивных '
+                                                                                      'пользователей, не пропускаются '
+                                                                                      'в глобальный чат.```',
+                                                   color=0xd40000)
         # Отправляем информационное сообщение и удаляем его через 13 секунд
         await message.channel.send(embed=emFilterGlobalChatEveryone, delete_after=13)
         return
@@ -239,7 +251,9 @@ async def on_message(message):
     if "@" in message.content:
         await message.delete()
         # Создаём информационное сообщение
-        emFilterGlobalChatSymbol = discord.Embed(title='❌ • ВНИМАНИЕ!', description='```Сообщения с символом "@" не пропускаются в глобальный чат.```', color=0xd40000)
+        emFilterGlobalChatSymbol = discord.Embed(title='❌ • ВНИМАНИЕ!', description='```Сообщения с символом "@" не '
+                                                                                    'пропускаются в глобальный '
+                                                                                    'чат.```', color=0xd40000)
         # Отправляем информационное сообщение и удаляем его через 13 секунд
         await message.channel.send(embed=emFilterGlobalChatSymbol, delete_after=13)
         return
@@ -249,7 +263,13 @@ async def on_message(message):
             'select count(*) from black_list where userid = ?;', [message.author.id])).fetchone())[0] == 1:
         await message.delete()
         # Создаём информационное сообщение
-        emFilterGlobalChatBlackList = discord.Embed(title='❌ • ВНИМАНИЕ!', description='```Сообщение пользователей из чёрного списка, не пропускаются в глобальный чат.\n Вам по прежнему доступно использование команд приложения.```', color=0xd40000)
+        emFilterGlobalChatBlackList = discord.Embed(title='❌ • ВНИМАНИЕ!', description='```Сообщение пользователей из '
+                                                                                       'чёрного списка, '
+                                                                                       'не пропускаются в глобальный '
+                                                                                       'чат.\n Вам по прежнему '
+                                                                                       'доступно использование команд '
+                                                                                       'приложения.```',
+                                                    color=0xd40000)
         # Отправляем информационное сообщение и удаляем его через 13 секунд
         await message.channel.send(embed=emFilterGlobalChatBlackList, delete_after=13)
         return
@@ -266,7 +286,12 @@ async def on_message(message):
         else:
             await message.delete()
             # Создаём информационное сообщение
-            emFilterGlobalChatFormatFiles = discord.Embed(title='❌ • ВНИМАНИЕ!', description='```Файлы с расширениями *.bmp, *.jpeg, *.jpg, *.png, *.gif, не пропускаются в глобальный чат.```', color=0xd40000)
+            emFilterGlobalChatFormatFiles = discord.Embed(title='❌ • ВНИМАНИЕ!', description='```Файлы с расширениями '
+                                                                                             '*.bmp, *.jpeg, *.jpg, '
+                                                                                             '*.png, *.gif, '
+                                                                                             'не пропускаются в '
+                                                                                             'глобальный чат.```',
+                                                          color=0xd40000)
             # Отправляем информационное сообщение и удаляем его через 13 секунд
             await message.channel.send(embed=emFilterGlobalChatFormatFiles, delete_after=13)
             return
@@ -304,7 +329,10 @@ async def ping(ctx):
              guild_ids=guild_ids_for_slash())
 async def information(ctx):
     # Создаём сообщение
-    emInformation = discord.Embed(title='ИНФОРМАЦИЯ', description=config.client_full_description.format(invite_link=get_invite_link(client.user.id)), colour=0x2F3136)
+    emInformation = discord.Embed(title='ИНФОРМАЦИЯ', description=config.client_full_description.format(
+        invite_link=get_invite_link(client.user.id)),
+                                  colour=0x2F3136)
+
     emInformation.add_field(name='Разработчики', value='• <@420130693696323585>\n• <@665018860587450388>')
     emInformation.add_field(name='Благодарности', value='• <@478527700710195203>')
     # emInformation.add_field(name='Список серверов', value="".join(guild.name + '\n' for guild in client.guilds))
@@ -356,7 +384,8 @@ async def blacklist_add(ctx, user, reason=None):
     # Создаём информационное сообщение
     # TODO: Добавить имя пользователя по мимо его ID
     # TODO: Возможно это сообщение надо отправлять в глобальный чат
-    emBlackListAdd = discord.Embed(title='⚠ • ВНИМАНИЕ!', description=f'```Пользователь с ID {userid} занесён в чёрный список приложения```', color=0x90D400)
+    emBlackListAdd = discord.Embed(title='⚠ • ВНИМАНИЕ!', description=f'```Пользователь с ID {userid} занесён в '
+                                                                      f'чёрный список приложения```', color=0x90D400)
     # Отправляем информационное сообщение и удаляем его через 13 секунд
     await ctx.send(embed=emBlackListAdd, delete_after=13)
 
@@ -400,7 +429,7 @@ async def blacklist_show(ctx):
     options=[
         create_option(
             name='user',
-            description='Упоминить пользователя или указать его ID',
+            description='Упомянуть пользователя или указать его ID',
             option_type=6,
             required=True)
     ])
@@ -417,7 +446,9 @@ async def blacklist_remove(ctx, user):
     if not is_userid_banned:
         # Создаём информационное сообщение
         # TODO: Добавить в сообщение имя пользователя и ID
-        emBlackListRemoveNoUser = discord.Embed(title='⚠ • ВНИМАНИЕ!', description=f'```Этот пользователь не находится чёрном списке приложения.```', color=0xd40000)
+        emBlackListRemoveNoUser = discord.Embed(title='⚠ • ВНИМАНИЕ!', description=f'```Этот пользователь не '
+                                                                                   f'находится чёрном списке '
+                                                                                   f'приложения.```', color=0xd40000)
         # Отправляем информационное сообщение и удаляем его через 13 секунд
         await ctx.send(embed=emBlackListRemoveNoUser, delete_after=13)
         return
@@ -427,7 +458,9 @@ async def blacklist_remove(ctx, user):
     # Создаём информационное сообщение
     # TODO: Добавить в сообщение имя пользователя и ID
     # TODO: Возможно это сообщение надо отправлять в глобальный чат
-    emBlackListRemoveUser = discord.Embed(title='⚠ • ВНИМАНИЕ!', description=f'```Пользователь успешно удалён из чёрного списка приложения.```', color=0x90D400)
+    emBlackListRemoveUser = discord.Embed(title='⚠ • ВНИМАНИЕ!', description=f'```Пользователь успешно удалён из '
+                                                                             f'чёрного списка приложения.```',
+                                          color=0x90D400)
     # Отправляем информационное сообщение и удаляем его через 13 секунд
     await ctx.send(embed=emBlackListRemoveUser, delete_after=13)
 
@@ -445,8 +478,14 @@ async def blacklist_remove(ctx, user):
 )
 async def servers_show(ctx):
     # Создаём сообщение
-    emServers = discord.Embed(title='СПИСОК СЕРВЕРОВ', description='Список серверов, к которым подключено приложение. Данный список не относится к белому списку серверов которым разрешено обмениваться сообщениями.', colour=0x2F3136)
-    emServers.add_field(name='Список серверов', value="".join(guild.name + f' (ID:{guild.id})\n' for guild in client.guilds))
+    emServers = discord.Embed(title='СПИСОК СЕРВЕРОВ', description='Список серверов, к которым подключено приложение. '
+                                                                   'Данный список не относится к белому списку '
+                                                                   'серверов которым разрешено обмениваться '
+                                                                   'сообщениями.', colour=0x2F3136)
+    emServers.add_field(name='Список серверов', value="".join(
+        guild.name + f' (ID:{guild.id})\n' for guild in client.guilds)
+                        )
+
     emServers.set_footer(text=' ' + client.user.name + ' ')
     # Отправляем сообщение и удаляем его через 60 секунд
     await ctx.send(embed=emServers, delete_after=60)
@@ -461,7 +500,7 @@ async def servers_show(ctx):
     name='leave',
     guild_ids=guild_ids_for_slash(),
     base_desc='Действия серверами',
-    description='Отклить приложение от сервера'
+    description='Отключить приложение от сервера'
 )
 # Команду может выполнить только владелец приложения
 async def server_leave(ctx, id_to_leave: str):  # TODO: test it
@@ -507,7 +546,10 @@ async def setup(ctx):
 
 
 # ------------- КОМАНДА ВЫВОДА ПРАВИЛ ГЛОБАЛЬНОГО КАНАЛА
-@slash.slash(name="rules", description="Показать правила использования глобального канала", guild_ids=guild_ids_for_slash())
+@slash.slash(name="rules",
+             description="Показать правила использования глобального канала",
+             guild_ids=guild_ids_for_slash()
+             )
 async def rules_cmd(ctx):
     emRules = discord.Embed(title='ПРАВИЛА', description=config.globalchannel_rules, colour=0x2F3136)
     await ctx.send(embed=emRules, delete_after=60)
@@ -516,7 +558,7 @@ async def rules_cmd(ctx):
 # ------------- КОМАНДА ВЫВОДА ПРАВИЛ ГЛОБАЛЬНОГО КАНАЛА // КОНЕЦ
 
 
-# ------------- TODO: Указать кооментарий оисывающий данный блок кода ᓚᘏᗢ
+# ------------- TODO: Указать комментарий, описывающий данный блок кода ᓚᘏᗢ
 async def shutdown_async():
     logger.info('Executing shutdown_async')
     # await send_to_servers(content='Выключение', delete_after=13)
