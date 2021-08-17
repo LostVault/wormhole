@@ -1,0 +1,7 @@
+{
+  "name": "Wormhole",
+  "description": "Приложение для обмена текстовыми и файловыми сообщениями между серверами по игре Elite Dangerous в Discord.",
+  "repository": "https://github.com/beigbeider/wormhole/tree/deploy",
+  "logo": "",
+  "keywords": ["discord", "bridge"]
+}
