@@ -9,16 +9,15 @@
 <p align="center">
     Приложение для обмена текстовыми и файловыми сообщениями между серверами по игре Elite Dangerous в Discord.
     <br/>
-    <a href="https://discord.gg/HFqmXPvMxC">Сервер Discord</a>
-    •
-    <a href="https://discord.com/oauth2/authorize?client_id=876127339161981059&scope=bot%20applications.commands">Подключить Wormhole</a>
-</p>
-
-
-<p align="center">
-  <a href="https://heroku.com/deploy?template=https://github.com/beigbeider/wormhole/tree/rewrite">
+    <br/>
+    <a href="https://discord.gg/HFqmXPvMxC">
+    <img alt="PyPI" src="https://img.shields.io/discord/866758975345393734?color=90ff00&label=Developers&logo=Discord&logoColor=90ff00" alt="Developers"></a>
+    <a href="https://discord.com/oauth2/authorize?client_id=876127339161981059&scope=bot%20applications.commands">
+    <img alt="PyPI" src="https://img.shields.io/github/last-commit/beigbeider/wormhole/deploy?color=22d0ff&label=%D0%9F%D0%BE%D0%B4%D0%BA%D0%BB%D1%8E%D1%87%D0%B8%D1%82%D1%8C%20%D0%BF%D1%80%D0%B8%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5&logo=discord&logoColor=22d0ff" alt="Подключить приложение"></a>
+    <br/>
+    <br/>
+    <a href="https://heroku.com/deploy?template=https://github.com/beigbeider/wormhole/tree/deploy">
     <img src="https://www.herokucdn.com/deploy/button.svg" alt="Deploy">
-  </a>
 </p>
 
 :warning: | Просим вас обратить внимание, что на данный момент возможность подключить приложение к своему серверу отключена. В скором будущем, данная возможность будет включена повторно.
