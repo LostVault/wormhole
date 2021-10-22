@@ -13,7 +13,7 @@
     <a href="https://discord.gg/HFqmXPvMxC">
     <img alt="PyPI" src="https://img.shields.io/discord/866758975345393734?color=90ff00&label=Developers&logo=Discord&logoColor=90ff00" alt="Developers"></a>
     <a href="https://discord.com/oauth2/authorize?client_id=876127339161981059&scope=bot%20applications.commands">
-    <img alt="PyPI" src="https://img.shields.io/github/last-commit/beigbeider/wormhole/deploy?color=22d0ff&label=%D0%9F%D0%BE%D0%B4%D0%BA%D0%BB%D1%8E%D1%87%D0%B8%D1%82%D1%8C%20%D0%BF%D1%80%D0%B8%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5&logo=discord&logoColor=22d0ff" alt="Подключить приложение"></a>
+    <img alt="PyPI" src="https://img.shields.io/github/last-commit/beigbeider/wormhole/master?color=22d0ff&label=%D0%9F%D0%BE%D0%B4%D0%BA%D0%BB%D1%8E%D1%87%D0%B8%D1%82%D1%8C%20%D0%BF%D1%80%D0%B8%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5&logo=discord&logoColor=22d0ff" alt="Подключить приложение"></a>
     <br/>
     <br/>
     <a href="https://heroku.com/deploy?template=https://github.com/beigbeider/wormhole/tree/deploy"></a>
