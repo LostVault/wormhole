@@ -28,6 +28,9 @@ globalchannel = environ['WORMHOLE_GLOBALCHANNEL']
 environment_type = environ['WORMHOLE_ENVIRONMENT'].lower()
 assert environment_type in ['test', 'prod'], f"Wrong environment type: {environment_type}, must be 'test' or 'prod'"
 
+# Промежуток времени в секундах, в которое можно отправить одно сообщение:
+cooldown = environ['FILTER_COOLDOWN']
+
 # Имя файла база данных
 db_file_name = 'Wormhole.sqlite'
 
