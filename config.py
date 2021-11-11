@@ -28,14 +28,8 @@ globalchannel = environ['WORMHOLE_GLOBALCHANNEL']
 environment_type = environ['WORMHOLE_ENVIRONMENT'].lower()
 assert environment_type in ['test', 'prod'], f"Wrong environment type: {environment_type}, must be 'test' or 'prod'"
 
-# Промежуток времени в секундах, в которое можно отправить одно сообщение:
-cooldown = environ['FILTER_COOLDOWN']
-
 # Имя файла база данных
 db_file_name = 'Wormhole.sqlite'
-
-# Описания глобального канала которое создаётся по команде Setup
-channel_setup_description = '**Vox Galactica** - Wormhole / Глобальный чат серверов по Elite Dangerous'
 
 # Список пользователей по ID которым будут выданы разрешения владельца
 # Список даёт возможность использовать команды модерации
@@ -46,8 +40,24 @@ additional_owners: list = [
 # ------------- ОСНОВНЫЕ // КОНЕЦ
 
 
-# ------------- СООБЩЕНИЯ
+# ------------- ФИЛЬТР СООБЩЕНИЙ
+# Промежуток времени в секундах, в которое можно отправить одно сообщение:
+cooldown = environ['FILTER_COOLDOWN']
 
+# ------------- ФИЛЬТР СООБЩЕНИЙ // КОНЕЦ
+
+
+# ------------- СОЗДАНИЕ ГЛОБЕЛЬНОГО КАНАЛА
+# Время замедленного режима в секундах
+setup_globalchannel_cooldown = 30
+
+# Описания глобального канала которое создаётся по команде Setup
+setup_globalchannel_description = '**Vox Galactica** - Wormhole / Глобальный чат серверов по **Elite Dangerous**'
+
+# ------------- СОЗДАНИЕ ГЛОБЕЛЬНОГО КАНАЛА // КОНЕЦ
+
+
+# ------------- СООБЩЕНИЯ
 # Краткое описание приложения:
 client_short_description = '''
 Приложение для обмена текстовыми и файловыми сообщениями между серверами по игре Elite Dangerous
