@@ -12,7 +12,7 @@ from discord_slash.utils.manage_commands import create_option
 import config  # Импортируем настройки приложения
 import signal  # TODO: Указать комментарий, описывающий данную строку ᓚᘏᗢ
 
-sql_conn: aiosqlite.Connection
+sql_conn: aiosqlite.Connection # TODO: Указать комментарий, описывающий данную строку ᓚᘏᗢ
 # ------------- ИМПОРТ МОДУЛЕЙ // КОНЕЦ
 
 
@@ -546,9 +546,13 @@ async def setup(ctx):
 
     if ctx.author.guild_permissions.administrator:  # проверка наличия админских прав на сервере у выполняющего
         guild = ctx.guild
-        if discord.utils.get(guild.text_channels,
-                             name=config.globalchannel) is None:  # проверка на наличие нужного канала
-            await guild.create_text_channel(name=config.globalchannel, topic=config.channel_setup_description)
+        if discord.utils.get(guild.text_channels, name=config.globalchannel) is None:  # проверка на наличие нужного канала
+            # Выдаём права нужные для работы приложения
+            overwrites = {
+                guild.me: discord.PermissionOverwrite(read_messages=True)
+            }
+
+            await guild.create_text_channel(name=config.globalchannel, topic=config.setup_globalchannel_description, overwrites=overwrites, slowmode_delay=config.setup_globalchannel_cooldown, reason='Создание канала для Wormhole.')
             await ctx.send(
                 f'Канал {config.globalchannel} успешно создан и будет использоваться для пересылки сообщений',
                 delete_after=13)
