@@ -547,9 +547,9 @@ async def setup(ctx):
     if ctx.author.guild_permissions.administrator:  # проверка наличия админских прав на сервере у выполняющего
         guild = ctx.guild
         if discord.utils.get(guild.text_channels, name=config.globalchannel) is None:  # проверка на наличие нужного канала
-            # Выдаём права нужные для работы приложения
+            # Выдаём права нужные для работы приложения (manage_channels=True, manage_permissions=True - Требуеют права администратора на сервере)
             overwrites = {
-                guild.me: discord.PermissionOverwrite(read_messages=True)
+                guild.me: discord.PermissionOverwrite(read_messages=True, send_messages=True, manage_messages=True, embed_links=True, attach_files=True)
             }
 
             await guild.create_text_channel(name=config.globalchannel, topic=config.setup_globalchannel_description, overwrites=overwrites, slowmode_delay=config.setup_globalchannel_cooldown, reason='Создание канала для Wormhole.')
