@@ -2,6 +2,8 @@
 # ------------- ИМПОРТ МОДУЛЕЙ
 import asyncio  # TODO: Указать комментарий, описывающий данную строку ᓚᘏᗢ
 import logging  # Импортируем модуль логирования
+import time
+import typing
 
 import aiosqlite  # Импортируем модуль работы с базами SQLite
 import discord  # Импортируем основной модуль
@@ -31,9 +33,39 @@ logging.basicConfig(level=logging.WARNING,
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-
-
 # ------------- РЕГИСТРИРУЕМ СОБЫТИЯ ПРИЛОЖЕНИЯ // КОНЕЦ
+
+# Словарь для применения cooldown'a
+cooldown: dict[int, int] = dict()
+
+
+def handle_cooldown(user_id: int) -> typing.Union[bool, int]:
+    """Принимает айдишник пользователя на вход и возвращает True если кд для пользователя кончился и кол-во секунд
+    до конца кд, если не кончился
+    Также обновляет кд для указанного пользователя
+    TODO: при длительной эксплуатации, размер cooldown может достичь больших размеров
+
+    :param user_id: ID пользователя для определения состояния кд и возможности отправки сообщения на основе кд
+    :return: Может ли пользователь отправить сообщение
+    """
+
+    global cooldown
+    # Значением в cooldown является время в unix формате, когда пользователю можно будет отправить следующее сообщение
+
+    if user_id in cooldown:
+        if time.time() > cooldown[user_id]:
+            # кд для пользователя кончился
+            cooldown[user_id] = int(time.time()) + config.cooldown  # Обновление КД для пользователя
+            return True
+
+        else:
+            # кд не кончился
+            return int(cooldown[user_id] - time.time())
+
+    else:
+        # Пользователя нет в КД списке, добавим туда и разрешим отправку сейчас
+        cooldown[user_id] = int(time.time()) + config.cooldown
+        return True
 
 
 # ------------- СОЗДАЁМ ШАБЛОН ДЛЯ ПЕРЕСЫЛКИ СООБЩЕНИЯ НА ВСЕ СЕРВЕРА
@@ -288,6 +320,13 @@ async def on_message(message):
                                                         color=0xd40000)
         # Отправляем информационное сообщение и удаляем его через 13 секунд
         await message.channel.send(embed=emFilterGlobalChatShortMessages, delete_after=13)
+        return
+
+    kd_status = handle_cooldown(message.author.id)
+    if isinstance(kd_status, int):
+        kdWarnEmbed = discord.Embed(title='КД', text=f'Попробуйте через {kd_status}')
+        await message.delete()
+        await message.channel.send(embed=kdWarnEmbed, delete_after=13)
         return
 
     # Создаём сообщение
