@@ -42,7 +42,7 @@ additional_owners: list = [
 
 # ------------- ФИЛЬТР СООБЩЕНИЙ
 # Промежуток времени в секундах, в которое можно отправить одно сообщение:
-cooldown = environ['FILTER_COOLDOWN']
+cooldown = int(environ['FILTER_COOLDOWN'])
 
 # ------------- ФИЛЬТР СООБЩЕНИЙ // КОНЕЦ
 
