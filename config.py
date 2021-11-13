@@ -44,6 +44,12 @@ additional_owners: list = [
 # Промежуток времени в секундах, в которое можно отправить одно сообщение:
 cooldown = int(environ['FILTER_COOLDOWN'])
 
+# Минимальное количество символов в сообщение разрешённое к отправке в глоалбный канал
+shortmessages = 3
+
+# Сайты ссылки которых пропускаются в глоадбльный чат
+linkswhitelist =["discord.com", "elitedangerous.com", "inara.cz"]
+
 # ------------- ФИЛЬТР СООБЩЕНИЙ // КОНЕЦ
 
 
@@ -51,7 +57,7 @@ cooldown = int(environ['FILTER_COOLDOWN'])
 # Время замедленного режима в секундах
 setup_globalchannel_cooldown = 30
 
-# Описания глобального канала которое создаётся по команде Setup
+# Описания глобального канала
 setup_globalchannel_description = '**Vox Galactica** - Wormhole / Глобальный чат серверов по **Elite Dangerous**'
 
 # ------------- СОЗДАНИЕ ГЛОБЕЛЬНОГО КАНАЛА // КОНЕЦ
