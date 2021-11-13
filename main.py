@@ -55,7 +55,7 @@ def handle_cooldown(user_id: int) -> typing.Union[bool, int]:
     # Значением в cooldown является время в unix формате, когда пользователю можно будет отправить следующее сообщение
 
     if user_id in cooldown:
-        if time.time() > cooldown[user_id]:
+        if int(time.time()) > cooldown[user_id]:
             # кд для пользователя кончился
             cooldown[user_id] = int(time.time()) + config.cooldown  # Обновление КД для пользователя
             return True
@@ -67,7 +67,7 @@ def handle_cooldown(user_id: int) -> typing.Union[bool, int]:
     else:
         # Пользователя нет в КД списке, добавим туда и разрешим отправку сейчас
         cooldown[user_id] = int(time.time()) + config.cooldown
-        # return True
+        return True
 
 # ------------- ПРОВЕРЯЕМ ПОЛЬЗОВАТЕЛЯ НА COOLDOWNN // КОНЕЦ
 
@@ -314,7 +314,8 @@ async def on_message(message):
 
     # Проверяйем время с последнего сообщения отправленное пользователем
     kd_status = handle_cooldown(message.author.id)
-    if isinstance(kd_status, int):
+    # if isinstance(kd_status, int):
+    if type(kd_status) is int:
         emFilterCooldown = discord.Embed(title='❌ • ВНИМАНИЕ!', description=f'```С последнего сообщения прошло слишком мало времени, попробуйте отправить сообщение повторно через {kd_status} секунд.```', color=0xd40000)
         # Удаляем сообщение пользователя
         await message.delete()
