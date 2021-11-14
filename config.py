@@ -31,9 +31,6 @@ assert environment_type in ['test', 'prod'], f"Wrong environment type: {environm
 # Имя файла база данных
 db_file_name = 'Wormhole.sqlite'
 
-# Описания глобального канала которое создаётся по команде Setup
-channel_setup_description = '**Vox Galactica** - Wormhole / Глобальный чат серверов по Elite Dangerous'
-
 # Список пользователей по ID которым будут выданы разрешения владельца
 # Список даёт возможность использовать команды модерации
 additional_owners: list = [
@@ -43,8 +40,30 @@ additional_owners: list = [
 # ------------- ОСНОВНЫЕ // КОНЕЦ
 
 
-# ------------- СООБЩЕНИЯ
+# ------------- ФИЛЬТР СООБЩЕНИЙ
+# Промежуток времени в секундах, в которое можно отправить одно сообщение:
+cooldown = int(environ['FILTER_COOLDOWN'])
 
+# Минимальное количество символов в сообщение разрешённое к отправке в глоалбный канал
+shortmessages = 3
+
+# Сайты ссылки которых пропускаются в глоадбльный чат
+whitelistlinks =['discord.com', 'elitedangerous.com', 'inara.cz', 'eddb.io', 'edtutorials.com', 'edsm.net', 'edcodex.info', 'edastro.com', 'coriolis.io', 'edassets.org', 'edsy.org', 'frontier.co.uk', 'edalerts.app', 'fuelrats.com']
+
+# ------------- ФИЛЬТР СООБЩЕНИЙ // КОНЕЦ
+
+
+# ------------- СОЗДАНИЕ ГЛОБЕЛЬНОГО КАНАЛА
+# Время замедленного режима в секундах
+setup_globalchannel_cooldown = 30
+
+# Описания глобального канала
+setup_globalchannel_description = '**Vox Galactica** - Wormhole / Глобальный чат серверов по **Elite Dangerous**'
+
+# ------------- СОЗДАНИЕ ГЛОБЕЛЬНОГО КАНАЛА // КОНЕЦ
+
+
+# ------------- СООБЩЕНИЯ
 # Краткое описание приложения:
 client_short_description = '''
 Приложение для обмена текстовыми и файловыми сообщениями между серверами по игре Elite Dangerous
