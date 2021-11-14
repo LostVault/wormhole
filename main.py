@@ -328,23 +328,23 @@ async def on_message(message):
     emGlobalMessage.set_footer(icon_url=message.guild.icon_url, text=f"Сервер: {message.guild.name} // ID пользователя: {message.author.id}")
 
     # Игнорируем сообщения с ссылками не из белого списка
-    splitMessage = message.content.split(" ")
-    for arg in splitMessage:
-        if "https://" in arg or "http://" in arg:
-            parsed_link = arg.split("/")
-            for link_fragment in parsed_link:
-                if link_fragment in config.linkswhitelist:
-                    return True
-                else:
-                    return
-        else:
-            # Удаляем сообщение пользователя
-            await message.delete()
-            # Создаём информационное сообщение
-            emFilterWhiteLinks = discord.Embed(title='❌ • ВНИМАНИЕ!', description='```Сообщения с ссылками на сайты не из белого списка не пропускаются в глобальный чат.```', color=0xd40000)
-            # Отправляем информационное сообщение и удаляем его через 13 секунд
-            await message.channel.send(embed=emFilterWhiteLinks, delete_after=13)
-            return
+    splitted_message: list = message.content.lower().split(' ')
+    for message_fragment in splitted_message:
+        if 'http://' in message_fragment or 'https://' in message_fragment:
+            # probably link
+            splited_link = message_fragment.split('/')
+            domain = splited_link[2]
+            if domain in config.whitelistlinks:
+                pass
+
+            else:
+                # Удаляем сообщение пользователя
+                await message.delete()
+                # Создаём информационное сообщение
+                emFilterWhiteLinks = discord.Embed(title='❌ • ВНИМАНИЕ!', description='```Сообщения с ссылками на сайты не из белого списка не пропускаются в глобальный чат.```', color=0xd40000)
+                # Отправляем информационное сообщение и удаляем его через 13 секунд
+                await message.channel.send(embed=emFilterWhiteLinks, delete_after=13)
+                return
 
     # Проверяем расширение файлов
     for attachment in message.attachments:
