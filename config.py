@@ -48,7 +48,7 @@ cooldown = int(environ['FILTER_COOLDOWN'])
 shortmessages = 3
 
 # Сайты ссылки которых пропускаются в глоадбльный чат
-whitelistlinks =['discord.com', 'elitedangerous.com', 'inara.cz', 'eddb.io', 'edtutorials.com', 'edsm.net', 'edcodex.info', 'edastro.com', 'coriolis.io', 'edassets.org', 'edsy.org', 'frontier.co.uk', 'edalerts.app', 'fuelrats.com', 'elitepve.com']
+whitelistlinks =['discord.com', 'elitedangerous.com', 'inara.cz', 'eddb.io', 'edtutorials.com', 'edsm.net', 'edcodex.info', 'edastro.com', 'coriolis.io', 'edassets.org', 'edsy.org', 'frontier.co.uk', 'edalerts.app', 'fuelrats.com', 'elitepve.com', 'discord.gg', 'steampowered.com']
 
 # ------------- ФИЛЬТР СООБЩЕНИЙ // КОНЕЦ
 
