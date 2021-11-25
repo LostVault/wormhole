@@ -1,24 +1,23 @@
 <h1 align="center">
-  <br>
   <img src="sources/images/Wormhole - Logo - Small.png" alt="ᓚᘏᗢ" width="150" height="150">
-  <br>
-  Wormhole
+  <br></br>
+  WORMHOLE
   <br>
 </h1>
 
 <p align="center">
-    Приложение для обмена текстовыми и файловыми сообщениями между серверами по игре Elite Dangerous в Discord.
-    <br/>
-    <br/>
-    <a href="https://discord.gg/HFqmXPvMxC">
-    <img alt="PyPI" src="https://img.shields.io/discord/866758975345393734?color=90ff00&label=Developers&logo=Discord&logoColor=90ff00" alt="Developers"></a>
-    <a href="https://discord.com/oauth2/authorize?client_id=876127339161981059&scope=bot%20applications.commands">
-    <img alt="PyPI" src="https://img.shields.io/github/last-commit/beigbeider/wormhole/master?color=22d0ff&label=%D0%9F%D0%BE%D0%B4%D0%BA%D0%BB%D1%8E%D1%87%D0%B8%D1%82%D1%8C%20%D0%BF%D1%80%D0%B8%D0%BB%D0%BE%D0%B6%D0%B5%D0%BD%D0%B8%D0%B5&logo=discord&logoColor=22d0ff" alt="Подключить приложение"></a>
-    <br/>
-    <br/>
-    <a href="https://heroku.com/deploy?template=https://github.com/beigbeider/wormhole/tree/deploy"></a>
-    <img src="https://www.herokucdn.com/deploy/button.svg" alt="Deploy">
+   <b>Приложение для обмена текстовыми и файловыми сообщениями между серверами по игре «Elite Dangerous» в «Discord»</b>
 </p>
+
+<p align="center">
+		<a href="https://discord.gg/HFqmXPvMxC">Discord сервер разработчиков</a>
+</p>
+
+<div align="center">
+   <a href="https://discord.com/oauth2/authorize?client_id=876127339161981059&scope=bot%20applications.commands">
+      <kbd>Подключить приложение к серверу</kbd>
+   </a>
+</div>
 
 > #### ⚠ ВНИМАНИЕ
    > На данный момент возможность подключить приложение к своему серверу отключена. В скором будущем, данная возможность будет включена повторно.
@@ -56,3 +55,9 @@
 3. Выдать приложению вручную права `Управлять каналом`, `Управлять правами` на канале `wormhole`
    > #### ⚠ ВНИМАНИЕ
    > Права предоставляются вручную, так как для их автоматического предоставления потребуется предоставить приложению права `Администратора`, что в данный момент мы считаем не целесообразным.
+
+
+<p align="right">
+  <br>
+  <img src="sources/images/GPLv3_Logo.svg" alt="ᓚᘏᗢ" width="15%" height="15%">
+</p>
