@@ -255,9 +255,9 @@ async def on_message(message):
         # Удаляем сообщение пользователя
         await message.delete()
         # Создаём информационное сообщение
-        emFilterGlobalChatEveryone = discord.Embed(title='❌ • ВНИМАНИЕ!', description='```Сообщения с упоминанием всех активных и неактивных пользователей, не пропускаются в глобальный чат.```', color=0xd40000)
+        embed = discord.Embed(title='❌ • ВНИМАНИЕ!', description='```Сообщения с упоминанием всех активных и неактивных пользователей, не пропускаются в глобальный чат.```', color=0xd40000)
         # Отправляем информационное сообщение и удаляем его через 13 секунд
-        await message.channel.send(embed=emFilterGlobalChatEveryone, delete_after=13)
+        await message.channel.send(embed=embed, delete_after=13)
         return
 
     # Игнорируем сообщения с символом "@"
@@ -265,9 +265,9 @@ async def on_message(message):
         # Удаляем сообщение пользователя
         await message.delete()
         # Создаём информационное сообщение
-        emFilterGlobalChatSymbol = discord.Embed(title='❌ • ВНИМАНИЕ!', description='```Сообщения с символом "@" не пропускаются в глобальный чат.```', color=0xd40000)
+        embed = discord.Embed(title='❌ • ВНИМАНИЕ!', description='```Сообщения с символом "@" не пропускаются в глобальный чат.```', color=0xd40000)
         # Отправляем информационное сообщение и удаляем его через 13 секунд
-        await message.channel.send(embed=emFilterGlobalChatSymbol, delete_after=13)
+        await message.channel.send(embed=embed, delete_after=13)
         return
 
     # Игнорируем сообщения, отправленные пользователем из чёрного списка
@@ -275,9 +275,9 @@ async def on_message(message):
         # Удаляем сообщение пользователя
         await message.delete()
         # Создаём информационное сообщение
-        emFilterBlackList = discord.Embed(title='❌ • ВНИМАНИЕ!', description='```Сообщение пользователей из чёрного списка, не пропускаются в глобальный чат.\nВам по прежнему доступно использование команд приложения.```', color=0xd40000)
+        embed = discord.Embed(title='❌ • ВНИМАНИЕ!', description='```Сообщение пользователей из чёрного списка, не пропускаются в глобальный чат.\nВам по прежнему доступно использование команд приложения.```', color=0xd40000)
         # Отправляем информационное сообщение и удаляем его через 13 секунд
-        await message.channel.send(embed=emFilterBlackList, delete_after=13)
+        await message.channel.send(embed=embed, delete_after=13)
         return
 
     # Проверяйем минимальное количество символов разрешённое к отправке
@@ -285,25 +285,21 @@ async def on_message(message):
         # Удаляем сообщение пользователя
         await message.delete()
         # Создаём информационное сообщение
-        emFilterShortMessages = discord.Embed(title='❌ • ВНИМАНИЕ!', description=f'```Сообщения длиной менее {config.shortmessages} символов не пропускаются в глобальный чат.```', color=0xd40000)
+        embed = discord.Embed(title='❌ • ВНИМАНИЕ!', description=f'```Сообщения длиной менее {config.shortmessages} символов не пропускаются в глобальный чат.```', color=0xd40000)
         # Отправляем информационное сообщение и удаляем его через 13 секунд
-        await message.channel.send(embed=emFilterShortMessages, delete_after=13)
+        await message.channel.send(embed=embed, delete_after=13)
         return
 
     # Проверяйем время с последнего сообщения отправленное пользователем
     kd_status = handle_cooldown(message.author.id)
     # if isinstance(kd_status, int):
     if type(kd_status) is int:
-        emFilterCooldown = discord.Embed(title='❌ • ВНИМАНИЕ!', description=f'```С последнего сообщения прошло слишком мало времени, попробуйте отправить сообщение повторно через {kd_status} секунд.```', color=0xd40000)
+        embed = discord.Embed(title='❌ • ВНИМАНИЕ!', description=f'```С последнего сообщения прошло слишком мало времени, попробуйте отправить сообщение повторно через {kd_status} секунд.```', color=0xd40000)
         # Удаляем сообщение пользователя
         await message.delete()
         # Отправляем информационное сообщение и удаляем его через 13 секунд
-        await message.channel.send(embed=emFilterCooldown, delete_after=13)
+        await message.channel.send(embed=embed, delete_after=13)
         return
-
-    # Создаём сообщение в глобальный канал
-    emGlobalMessage = discord.Embed(description=f" **{message.author.name}**: {message.content}", colour=0x2F3136)
-    emGlobalMessage.set_footer(icon_url=message.guild.icon_url, text=f"Сервер: {message.guild.name} // ID пользователя: {message.author.id}")
 
     # Игнорируем сообщения с ссылками не из белого списка
     splitted_message: list = message.content.lower().split(' ')
@@ -324,6 +320,10 @@ async def on_message(message):
                 await message.channel.send(embed=emFilterWhiteLinks, delete_after=13)
                 return
 
+    # Создаём сообщение в глобальный канал
+    emGlobalMessage = discord.Embed(description=f" **{message.author.name}**: {message.content}", colour=0x2F3136)
+    emGlobalMessage.set_footer(text=f"Сервер: {message.guild.name} // ID пользователя: {message.author.id}")
+
     # Проверяем расширение файлов
     for attachment in message.attachments:
         if attachment.filename.endswith(('bmp', 'jpeg', 'jpg', 'png', 'gif')):
@@ -338,10 +338,10 @@ async def on_message(message):
             return
 
     # Удаляем сообщение, отправленное пользователем
-    await message.delete()
+    # await message.delete()
 
     # Отправляем сообщение
-    await send_to_servers(embed=emGlobalMessage)
+    await send_to_servers(f'> Сервер: `{message.guild.name}` // ID пользователя: `{message.author.id}`\n{message.content}')
 
 
 # endregion ••••••••••••• ВЫВОДИМ СООБЩЕНИЯ ПОЛЬЗОВАТЕЛЕЙ В КОНСОЛЬ ПРИЛОЖЕНИЯ И ПЕРЕНАПРАВЛЯЕМ НА ДРУГИЕ СЕРВЕРА // КОНЕЦ
