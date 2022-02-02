@@ -1,42 +1,43 @@
 # -*- coding: utf-8 -*-
-# ------------- ИМПОРТ МОДУЛЕЙ
-import asyncio  # TODO: Указать комментарий, описывающий данную строку ᓚᘏᗢ
-import logging  # Импортируем модуль логирования
-import time
-import typing
 
+# region •••••••••••••••• ИМПОРТ МОДУЛЕЙ
+import discord  # Импортируем библиотеку работы с Discord API (Application Programming Interface)
+from discord.commands import Option  # Импортируем библиотеку опций для глобальных комманд
+from discord.commands import permissions  # Импортируем библиотеку разрешений для глобальных комманд
+
+# ••••••••••••••••
+
+import time  # TODO: Указать комментарий, описывающий данную строку ᓚᘏᗢ
+import typing  # TODO: Указать комментарий, описывающий данную строку ᓚᘏᗢ
+import logging  # Импортируем модуль логирования
+import asyncio  # TODO: Указать комментарий, описывающий данную строку ᓚᘏᗢ
 import aiosqlite  # Импортируем модуль работы с базами SQLite
-import discord  # Импортируем основной модуль
-from discord.ext import commands  # Импортируем команды из модуля discord.ext
-from discord_slash import SlashCommand  # Импортируем модуль команд с косой чертой (slash)
-from discord_slash.utils.manage_commands import create_option
+
+# ••••••••••••••••
 
 import config  # Импортируем настройки приложения
 import signal  # TODO: Указать комментарий, описывающий данную строку ᓚᘏᗢ
 
 sql_conn: aiosqlite.Connection # TODO: Указать комментарий, описывающий данную строку ᓚᘏᗢ
-# ------------- ИМПОРТ МОДУЛЕЙ // КОНЕЦ
 
 
-# ------------- СОЗДАЁМ ПРИЛОЖЕНИЕ И НАЗЫВАЕМ ЕГО CLIENT
-client = commands.Bot(description=config.client_short_description, command_prefix=None, help_command=None)
+# endregion ••••••••••••• ИМПОРТ МОДУЛЕЙ // КОНЕЦ
 
-# ------------- СОЗДАЁМ ОБРАБОТКУ КОМАНДЫ С КОСОЙ ЧЕРТОЙ ЧЕРЕЗ СОЗДАННОЕ ПРИЛОЖЕНИЕ
-slash = SlashCommand(client, sync_commands=True)
-
-# ------------- СОЗДАЁМ ОБРАБОТКУ КОМАНДЫ С КОСОЙ ЧЕРТОЙ ЧЕРЕЗ СОЗДАННОЕ ПРИЛОЖЕНИЕ // КОНЕЦ
+# •••••• 😈 •••••• СОЗДАЁМ ПРИЛОЖЕНИЕ И НАЗЫВАЕМ ЕГО CLIENT
+client = discord.Bot(description=config.app_short_description, command_prefix=None, help_command=None)
 
 
-# ------------- РЕГИСТРИРУЕМ СОБЫТИЯ ПРИЛОЖЕНИЯ
-logging.basicConfig(level=logging.WARNING,
-                    format='%(asctime)s - %(levelname)s - %(process)d:%(thread)d: %(module)s:%(lineno)d: %(message)s')
+# region •••••••••••••••• ПРОВЕРЯЕМ В КАКОМ ОКРУЖЕНИЕ ЗАПУЩЕНО ПРИЛОЖЕНИЕ
+def guild_ids_for_slash():
+    if config.environment_type == 'prod':
+        return None
+    else:
+        return [guild.id for guild in client.guilds]
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-# ------------- РЕГИСТРИРУЕМ СОБЫТИЯ ПРИЛОЖЕНИЯ // КОНЕЦ
 
+# endregion ••••••••••••• ПРОВЕРЯЕМ В КАКОМ ОКРУЖЕНИЕ ЗАПУЩЕНО ПРИЛОЖЕНИЕ // КОНЕЦ
 
-# ------------- ПРОВЕРЯЕМ ПОЛЬЗОВАТЕЛЯ НА COOLDOWNN
+# region •••••••••••••••• ПРОВЕРЯЕМ ПОЛЬЗОВАТЕЛЯ НА COOLDOWNN
 # Словарь для применения cooldown'a
 cooldown: dict[int, int] = dict()
 
@@ -69,10 +70,20 @@ def handle_cooldown(user_id: int) -> typing.Union[bool, int]:
         cooldown[user_id] = int(time.time()) + config.cooldown
         return True
 
-# ------------- ПРОВЕРЯЕМ ПОЛЬЗОВАТЕЛЯ НА COOLDOWNN // КОНЕЦ
+# endregion ••••••••••••• ПРОВЕРЯЕМ ПОЛЬЗОВАТЕЛЯ НА COOLDOWNN // КОНЕЦ
+
+# ••••••••••••••••
 
 
-# ------------- СОЗДАЁМ ШАБЛОН ДЛЯ ПЕРЕСЫЛКИ СООБЩЕНИЯ НА ВСЕ СЕРВЕРА
+# region •••••••••••••••• СОЗДАЁМ ШАБЛОН С ССЫЛКОЙ ДЛЯ ПОДКЛЮЧЕНИЯ К СЕРВЕРУ
+def get_invite_link(bot_id):
+    return f'https://discord.com/oauth2/authorize?client_id={bot_id}&scope=bot%20applications.commands'
+
+
+# endregion ••••••••••••• СОЗДАЁМ ШАБЛОН С ССЫЛКОЙ ДЛЯ ПОДКЛЮЧЕНИЯ К СЕРВЕРУ
+
+
+# region •••••••••••••••• СОЗДАЁМ ШАБЛОН ДЛЯ ПЕРЕСЫЛКИ СООБЩЕНИЯ НА ВСЕ СЕРВЕРА
 async def send_to_servers(*args, **kwargs):
     """
     send message to all connected servers to config.globalchannel channel, arguments as for channel.send()
@@ -93,10 +104,63 @@ async def send_to_servers(*args, **kwargs):
                 logger.warning(f"Failed to send message to {guild.name}: {e}")
 
 
-# ------------- СОЗДАЁМ ШАБЛОН ДЛЯ ПЕРЕСЫЛКИ СООБЩЕНИЯ НА ВСЕ СЕРВЕРА // КОНЕЦ
+# endregion ••••••••••••• СОЗДАЁМ ШАБЛОН ДЛЯ ПЕРЕСЫЛКИ СООБЩЕНИЯ НА ВСЕ СЕРВЕРА // КОНЕЦ
 
 
-# ------------- TODO: Указать комментарий, описывающий данный блок кода ᓚᘏᗢ
+# ••••••••••••••••
+
+
+# region •••••••••••••••• ВЫВОДИМ ДАННЫЕ ПРИЛОЖЕНИЯ ПРИ ПОДКЛЮЧЕНИЕ В КОНСОЛЬ
+@client.event
+async def on_ready():
+    global sql_conn
+    sql_conn = await aiosqlite.connect(config.db_file_name)
+    await sql_conn.execute('create table if not exists black_list (userid integer not null unique, '
+                           'add_timestamp text default current_timestamp, reason text, banner_id integer);')
+
+    # Console Log // Выводим данные приложения в консоль Python
+    logger.info(f'APP Username: {client.user} ')
+    logger.info(f'Using token {config.token[0:2]}...{config.token[-3:-1]}')
+    logger.info(f'Current env type: {config.environment_type}')
+    logger.info(f'Using global channel: {config.globalchannel}')
+    logger.info('APP Client ID: {0.user.id} '.format(client))
+
+    # Console Log // Выводим ссылку для подключения приложения к серверу в консоль Python
+    logger.info(f'Link for connection: {get_invite_link(client.user.id)}')
+
+    # Console Log // Выводим список серверов к которым подключено приложение в консоль Python
+    logger.info('Servers connected to: ' + ''.join('"' + guild.name + '"; ' for guild in client.guilds))
+
+    # Изменяем статус приложения
+    await client.change_presence(status=discord.Status.online, activity=discord.Game(config.app_status_game))
+
+    # Создаём информационное сообщение
+    emStatusOn = discord.Embed(title='⚠ • ВНИМАНИЕ!', description='```Приложение запущено.```', color=0x90D400)
+    emStatusOn.set_image(url="https://media.discordapp.net/attachments/682731260719661079/682731350922493952/ED1.gif")
+    emStatusOn.set_footer(text=client.user.name)
+    # Отправляем информационное сообщение и удаляем его через 13 секунд
+    await send_to_servers(embed=emStatusOn, delete_after=13)
+
+
+# endregion ••••••••••••• ВЫВОДИМ ДАННЫЕ ПРИЛОЖЕНИЯ ПРИ ПОДКЛЮЧЕНИЕ В КОНСОЛЬ // КОНЕЦ
+
+
+# region •••••••••••••••• ВЫВОДИМ СОБЫТИЯ ПРИЛОЖЕНИЯ В КОНСОЛЬ
+logging.basicConfig(
+    level=logging.WARNING,
+    format='%(asctime)s - %(levelname)s - %(process)d:%(thread)d: %(module)s:%(lineno)d: %(message)s')
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+
+# endregion ••••••••••••• РЕГИСТРИРУЕМ СОБЫТИЯ ПРИЛОЖЕНИЯ В КОНСОЛЬ // КОНЕЦ
+
+
+# ••••••••••••••••
+
+
+# region •••••••••••••••• TODO: Указать комментарий, описывающий данный блок кода ᓚᘏᗢ
 async def fetch_or_get_user(userid: int, suppress=True):
     user = client.get_user(userid)
     if user is None:
@@ -131,63 +195,10 @@ async def raise_for_owner(ctx):
         raise discord.ext.commands.NotOwner
 
 
-# ------------- ᓚᘏᗢ
+# endregion ••••••••••••• ᓚᘏᗢ
 
 
-# ------------- TODO: Указать комментарий описывающий данный блок кода ᓚᘏᗢ
-def guild_ids_for_slash():
-    if config.environment_type == 'prod':
-        return None
-    else:
-        return [guild.id for guild in client.guilds]
-
-
-# ------------- ᓚᘏᗢ
-
-
-# ------------- СОЗДАЁМ ШАБЛОН С ССЫЛКОЙ ДЛЯ ПОДКЛЮЧЕНИЯ ПРИЛОЖЕНИЯ К СЕРВЕРУ
-def get_invite_link(bot_id):
-    return f'https://discord.com/oauth2/authorize?client_id={bot_id}&scope=bot%20applications.commands'  # noqa: E501
-
-
-# ------------- СОЗДАЁМ ШАБЛОН С ССЫЛКОЙ ДЛЯ ПОДКЛЮЧЕНИЯ ПРИЛОЖЕНИЯ К СЕРВЕРУ // КОНЕЦ
-
-
-# ------------- ВЫВОДИМ ДАННЫЕ ПРИЛОЖЕНИЯ ПРИ ПОДКЛЮЧЕНИЕ В КОНСОЛЬ PYTHON
-@client.event
-async def on_ready():
-    global sql_conn
-    sql_conn = await aiosqlite.connect(config.db_file_name)
-    await sql_conn.execute('create table if not exists black_list (userid integer not null unique, '
-                           'add_timestamp text default current_timestamp, reason text, banner_id integer);')
-
-    # Console Log // Выводим данные приложения в консоль Python
-    logger.info(f'APP Username: {client.user} ')
-    logger.info(f'Using token {config.token[0:2]}...{config.token[-3:-1]}')
-    logger.info(f'Current env type: {config.environment_type}')
-    logger.info(f'Using global channel: {config.globalchannel}')
-    logger.info('APP Client ID: {0.user.id} '.format(client))
-    # Console Log // Выводим ссылку для подключения приложения к серверу в консоль Python
-    logger.info(f'Link for connection: {get_invite_link(client.user.id)}')
-
-    # Console Log // Выводим список серверов к которым подключено приложение в консоль Python
-    logger.info('Servers connected to: ' + ''.join('"' + guild.name + '"; ' for guild in client.guilds))
-
-    # Изменяем статус приложения
-    await client.change_presence(status=discord.Status.online, activity=discord.Game('Elite Dangerous'))
-
-    # Создаём информационное сообщение
-    emStatusOn = discord.Embed(title='⚠ • ВНИМАНИЕ!', description='```Приложение запущено.```', color=0x90D400)
-    emStatusOn.set_image(url="https://media.discordapp.net/attachments/682731260719661079/682731350922493952/ED1.gif")
-    emStatusOn.set_footer(text=client.user.name)
-    # Отправляем информационное сообщение и удаляем его через 13 секунд
-    await send_to_servers(embed=emStatusOn, delete_after=13)
-
-
-# ------------- ВЫВОДИМ ДАННЫЕ ПРИЛОЖЕНИЯ ПРИ ПОДКЛЮЧЕНИЕ В КОНСОЛЬ PYTHON // КОНЕЦ
-
-
-# ------------- ОПОВЕЩЕНИЕ О ПОДКЛЮЧЕНИЕ/ОТКЛЮЧЕНИЕ ПРИЛОЖЕНИЯ К СЕРВЕРУ
+# region •••••••••••••••• ОПОВЕЩЕНИЕ О ПОДКЛЮЧЕНИЕ/ОТКЛЮЧЕНИЕ ПРИЛОЖЕНИЯ К СЕРВЕРУ
 @client.event
 async def on_guild_join(guild):
     logger.info(f'Joining to "{guild.name}" guild')
@@ -214,43 +225,10 @@ async def on_guild_remove(guild):
     await send_to_servers(embed=emAppDisconnectServer)
 
 
-# ------------- ОПОВЕЩЕНИЕ О ПОДКЛЮЧЕНИЕ/ОТКЛЮЧЕНИЕ ПРИЛОЖЕНИЯ К СЕРВЕРУ // КОНЕЦ
+# endregion ••••••••••••• ОПОВЕЩЕНИЕ О ПОДКЛЮЧЕНИЕ/ОТКЛЮЧЕНИЕ ПРИЛОЖЕНИЯ К СЕРВЕРУ // КОНЕЦ
 
 
-# ------------- РЕГИСТРИРУЕМ ОШИБКИ КОМАНД С КОСОЙ ЧЕРТОЙ И СООБЩАЕМ ОБ ЭТОМ ПОЛЬЗОВАТЕЛЯМ
-@client.event
-async def on_slash_command_error(ctx, error):
-    logger.warning(
-        f"An error occurred: {ctx.guild} / {ctx.author} / command: {ctx.name}; Error: {error}", exc_info=error)
-    if isinstance(error, discord.ext.commands.NotOwner):
-        # Создаём информационное сообщение
-        emSlashErrorNotOwner = discord.Embed(title='❌ • ВНИМАНИЕ!',
-                                             description='```' + ctx.author.mention + ', выполнение этой команды '
-                                                                                      'доступно только владельцу '
-                                                                                      'приложения.```',
-                                             color=0xd40000)
-        # Отправляем информационное сообщение и удаляем его через 13 секунд
-        await ctx.send(embed=emSlashErrorNotOwner, delete_after=13)
-        return
-
-    await ctx.send(str(error), delete_after=13)
-
-
-# ------------- РЕГИСТРИРУЕМ ОШИБКИ КОМАНД С КОСОЙ ЧЕРТОЙ И СООБЩАЕМ ОБ ЭТОМ ПОЛЬЗОВАТЕЛЯМ // КОНЕЦ
-
-
-# ------------- ВЫВОДИМ ИСПОЛЬЗОВАНИЕ КОМАНД С КОСОЙ ЧЕРТОЙ В КОНСОЛЬ PYTHON
-@client.event
-async def on_slash_command(ctx):
-    logger.info(f'Got slash command; {ctx.guild} / {ctx.author} / command: {ctx.name};'
-                f' subcommand_name: {ctx.subcommand_name};'
-                f' subcommand_group: {ctx.subcommand_group}; options: {ctx.data.get("options")}')
-
-
-# ------------- ВЫВОДИМ ИСПОЛЬЗОВАНИЕ КОМАНД С КОСОЙ ЧЕРТОЙ В КОНСОЛЬ PYTHON // КОНЕЦ
-
-
-# ------------- ВЫВОДИМ СООБЩЕНИЯ ПОЛЬЗОВАТЕЛЕЙ В КОНСОЛЬ ПРИЛОЖЕНИЯ И ПЕРЕНАПРАВЛЯЕМ НА ДРУГИЕ СЕРВЕРА
+# region •••••••••••••••• ВЫВОДИМ СООБЩЕНИЯ ПОЛЬЗОВАТЕЛЕЙ В КОНСОЛЬ ПРИЛОЖЕНИЯ И ПЕРЕНАПРАВЛЯЕМ НА ДРУГИЕ СЕРВЕРА
 @client.event
 async def on_message(message):
     # Игнорируем сообщения, отправленные этим приложением
@@ -366,67 +344,101 @@ async def on_message(message):
     await send_to_servers(embed=emGlobalMessage)
 
 
-# ------------- ВЫВОДИМ СООБЩЕНИЯ ПОЛЬЗОВАТЕЛЕЙ В КОНСОЛЬ ПРИЛОЖЕНИЯ И ПЕРЕНАПРАВЛЯЕМ НА ДРУГИЕ СЕРВЕРА // КОНЕЦ
+# endregion ••••••••••••• ВЫВОДИМ СООБЩЕНИЯ ПОЛЬЗОВАТЕЛЕЙ В КОНСОЛЬ ПРИЛОЖЕНИЯ И ПЕРЕНАПРАВЛЯЕМ НА ДРУГИЕ СЕРВЕРА // КОНЕЦ
 
 
-# ------------- КОМАНДА ПРОВЕРКА ПРИЛОЖЕНИЯ
-@slash.slash(name="ping",
-             description="Проверить состояние приложения",
-             guild_ids=guild_ids_for_slash())
+# ••••••••••••••••
+
+
+# region •••••••••••••••• КОМАНДА ПРОВЕРКА ПРИЛОЖЕНИЯ
+@client.slash_command(guild_ids=guild_ids_for_slash(), default_permission=False, name='ping', description='Проверить состояние приложения')
+# Команду может выполнить только владелец приложения
+@permissions.is_owner()
 async def ping(ctx):
-    # Создаём информационное сообщение
-    emPing = discord.Embed(
-        title='⚠ • ВНИМАНИЕ!',
-        description=f'Latency {round(client.latency * 100, 1)} ms',
-        colour=0x90D400)
-    # Отправляем информационное сообщение и удаляем его через 13 секунд
-    await ctx.send(embed=emPing, delete_after=13)
+    # Создаём сообщение
+    embed = discord.Embed(title='ВНИМАНИЕ!', description=f'Задержка {round(client.latency * 100, 1)} ms', colour=0x90D400)
+    # Отправляем скрытое сообщение
+    await ctx.respond(embed=embed, ephemeral=True)
+
+# endregion ••••••••••••• КОМАНДА ПРОВЕРКА ПРИЛОЖЕНИЯ // КОНЕЦ
 
 
-# ------------- КОМАНДА ПРОВЕРКА ПРИЛОЖЕНИЯ // КОНЕЦ
-
-
-# ------------- КОМАНДА ОТОБРАЖЕНИЯ ИНФОРМАЦИИ О ПРИЛОЖЕНИИ
-@slash.slash(name="information",
-             description="Показать информацию о приложение",
-             guild_ids=guild_ids_for_slash())
+# region •••••••••••••••• КОМАНДА ОТОБРАЖЕНИЯ ИНФОРМАЦИИ О ПРИЛОЖЕНИИ
+@client.slash_command(guild_ids=guild_ids_for_slash(), default_permission=True, name='information', description='Показать информацию о приложение.')
 async def information(ctx):
     # Создаём сообщение
-    emInformation = discord.Embed(title='ИНФОРМАЦИЯ', description=config.client_full_description.format(
-        invite_link=get_invite_link(client.user.id)),
-                                  colour=0x2F3136)
-
-    emInformation.add_field(name='Разработчики', value='• <@420130693696323585>\n• <@665018860587450388>')
-    emInformation.add_field(name='Благодарности', value='• <@478527700710195203>')
-    # emInformation.add_field(name='Список серверов', value="".join(guild.name + '\n' for guild in client.guilds))
-    emInformation.set_footer(text=client.user.name)
+    embed = discord.Embed(title='ИНФОРМАЦИЯ', description=f'```{config.app_full_description}```', colour=0x2F3136)
+    embed.set_thumbnail(url=f'{client.user.avatar.url}')
+    embed.set_footer(icon_url=f'{ctx.author.avatar.url}', text=f'Информация запрошена: {ctx.author.name}')
+    invite_app = discord.utils.oauth_url(client_id=client.user.id, permissions=discord.Permissions(),scopes=("bot", "applications.commands"))
+    # Создаём кнопки
+    button = discord.ui.View()
+    button.add_item(discord.ui.Button(label='Сервер поддержки', url=config.app_support_server_invite, style=discord.ButtonStyle.url))
+    button.add_item(discord.ui.Button(label='Добавить на сервер', url=invite_app, style=discord.ButtonStyle.url))
+    button.add_item(discord.ui.Button(label='GitHub', url=config.app_github_url, style=discord.ButtonStyle.url))
     # Отправляем сообщение и удаляем его через 60 секунд
-    await ctx.send(embed=emInformation, delete_after=60)
+    await ctx.respond(embed=embed, view=button, delete_after=60)
 
 
-# ------------- КОМАНДА ОТОБРАЖЕНИЯ ИФОРМАЦИИ О ПРИЛОЖЕНИЕ // КОНЕЦ
+# endregion ••••••••••••• КОМАНДА ОТОБРАЖЕНИЯ ИФОРМАЦИИ О ПРИЛОЖЕНИЕ // КОНЕЦ
 
 
-# ------------- КОМАНДА ЗАПИСИ ПОЛЬЗОВАТЕЛЯ В ЧЁРНЫЙ СПИСОК
-@slash.subcommand(
-    base='blacklist',
-    name='add',
-    guild_ids=guild_ids_for_slash(),
-    base_desc='Действия с чёрным списком',
-    description='Внести пользователя в чёрный список приложения',
-    options=[
-        create_option(
-            name='user',
-            description='userid to ban',
-            option_type=6,
-            required=True),
-        create_option(
-            name='reason',
-            description='reason to ban',
-            option_type=3,
-            required=False
-        )])
-async def blacklist_add(ctx, user, reason=None):
+# region •••••••••••••••• КОМАНДА ВЫВОДА ПРАВИЛ ГЛОБАЛЬНОГО КАНАЛА
+@client.slash_command(guild_ids=guild_ids_for_slash(), default_permission=True, name='rules', description='Показать правила использования глобального канала.')
+async def rules_cmd(ctx):
+    emRules = discord.Embed(title='ПРАВИЛА', description=config.globalchannel_rules, colour=0x2F3136)
+    await ctx.send(embed=emRules, delete_after=60)
+
+
+# endregion ••••••••••••• КОМАНДА ВЫВОДА ПРАВИЛ ГЛОБАЛЬНОГО КАНАЛА // КОНЕЦ
+
+
+# region •••••••••••••••• КОМАНДА СОЗДАНИЯ КАНАЛА ДЛЯ ПРИЁМА И ОТПРАВКИ СООБЩЕНИЙ
+@client.slash_command(guild_ids=guild_ids_for_slash(), default_permission=True, name='setup', description='Создать канала для приёма и передачи сообщений.')
+# Команду может выполнить только пользователь, с ролью администратор
+
+async def setup(ctx):
+    if isinstance(ctx.author, discord.User):  # проверка, не в лс ли идёт команда
+        await ctx.send('Использование этой команды допускается только на серверах, не в личных сообщениях',
+                       delete_after=13)
+        return
+
+    if ctx.author.guild_permissions.administrator:  # проверка наличия админских прав на сервере у выполняющего
+        guild = ctx.guild
+        if discord.utils.get(guild.text_channels, name=config.globalchannel) is None:  # проверка на наличие нужного канала
+            # Выдаём права нужные для работы приложения
+            # TODO: manage_channels=True, manage_permissions=True - Требуеют права администратора на сервере
+            overwrites = {
+                guild.me: discord.PermissionOverwrite(read_messages=True, send_messages=True, manage_messages=True, embed_links=True, attach_files=True)
+            }
+            # Создаём канал на сервере
+            await guild.create_text_channel(name=config.globalchannel, topic=config.setup_globalchannel_description, overwrites=overwrites, slowmode_delay=config.setup_globalchannel_cooldown, reason='Создание канала для Wormhole.')
+            await ctx.send(
+                f'Канал {config.globalchannel} успешно создан и будет использоваться для пересылки сообщений',
+                delete_after=13)
+        else:
+            await ctx.send(f'У вас уже есть подходящий канал: {config.globalchannel}', delete_after=13)
+    else:
+        await ctx.send('Для выполнения этой команды вам необходимо обладать правами администратора на этом сервере',
+                       delete_after=13)
+
+
+# endregion ••••••••••••• КОМАНДА СОЗДАНИЯ КАНАЛА ДЛЯ ПРИЁМА И ОТПРАВКИ СООБЩЕНИЙ // КОНЕЦ
+
+
+# ••••••••••••••••
+
+# region •••••••••••••••• СОЗДАЁМ ГРУППУ КОМАНД USER ДЛЯ КОМАНД С КОСОЙ ЧЕРТОЙ
+user = client.create_group("user", "Команды для работы с пользователями.")
+
+
+# endregion ••••••••••••• СОЗДАЁМ ГРУППУ КОМАНД SERVER ДЛЯ КОМАНД С КОСОЙ ЧЕРТОЙ // КОНЕЦ
+
+
+# region •••••••••••••••• КОМАНДА БЛОКИРОВКИ ПОЛЬЗОВАТЕЛЯ В ГЛОБАЛЬНОМ КАНАЛЕ
+@user.command(guild_ids=guild_ids_for_slash(), default_permission=False, name='block', description='Заблокировать пользователя в глобальном канале.')
+# @permissions.is_user(USER_ID)
+async def user_block(ctx, user, reason=None):
     await raise_for_owner(ctx)
 
     if isinstance(user, str):
@@ -453,50 +465,13 @@ async def blacklist_add(ctx, user, reason=None):
     await ctx.send(embed=emBlackListAdd, delete_after=13)
 
 
-# ------------- КОМАНДА ЗАПИСИ ПОЛЬЗОВАТЕЛЯ В ЧЁРНЫЙ СПИСОК // КОНЕЦ
+# endregion ••••••••••••• КОМАНДА БЛОКИРОВКИ ПОЛЬЗОВАТЕЛЯ В ГЛОБАЛЬНОМ КАНАЛЕ // КОНЕЦ
 
 
-# ------------- КОМАНДА ОТОБРАЖЕНИЯ ЧЁРНОГО СПИСОКА
-# Показ содержимого чёрного списка
-# TODO: Нормальное форматирование таблицы
-@slash.subcommand(
-    base='blacklist',
-    name='show',
-    guild_ids=guild_ids_for_slash(),
-    base_desc='Действия с чёрным списком',
-    description='Показать чёрный список'
-)
-async def blacklist_show(ctx):
-    full_list = await sql_conn.execute('select userid, add_timestamp, reason, banner_id from black_list')
-    table = ['username  userid    add_timestamp   reason  banner_id']
-    for user in (await full_list.fetchall()):
-        username = await fetch_or_get_user(int(user[0]))
-        if isinstance(username, discord.User):
-            username = username.name
-
-        table.append(str(username) + '   ' + '   '.join([str(item).center(5, ' ') for item in user]))
-    table = "```" + '\n'.join(table) + "```"
-    await ctx.send(table, delete_after=13)
-
-
-# ------------- КОМАНДА ОТОБРАЖЕНИЯ ЧЁРНОГО СПИСОКА // КОНЕЦ
-
-
-# ------------- КОМАНДА УДАЛЕНИЯ ПОЛЬЗОВАТЕЛЯ ИЗ ЧЁРНОГО СПИСКА
-@slash.subcommand(
-    base='blacklist',
-    name='remove',
-    guild_ids=guild_ids_for_slash(),
-    base_desc='Действия с чёрным списком',
-    description='Удалить пользователя из чёрного списка приложения',
-    options=[
-        create_option(
-            name='user',
-            description='Упомянуть пользователя или указать его ID',
-            option_type=6,
-            required=True)
-    ])
-async def blacklist_remove(ctx, user):
+# region •••••••••••••••• КОМАНДА РАЗБЛОКИРОВКИ ПОЛЬЗОВАТЕЛЯ В ГЛОБАЛЬНОМ КАНАЛЕ
+@user.command(guild_ids=guild_ids_for_slash(), default_permission=False, name='remove', description='Разблокировать пользователя в глобальном канале.')
+# @permissions.is_user(USER_ID)
+async def user_remove(ctx, user):
     await raise_for_owner(ctx)
 
     if isinstance(user, str):
@@ -528,110 +503,95 @@ async def blacklist_remove(ctx, user):
     await ctx.send(embed=emBlackListRemoveUser, delete_after=13)
 
 
-# ------------- КОМАНДА УДАЛЕНИЯ ПОЛЬЗОВАТЕЛЯ ИЗ ЧЁРНОГО СПИСКА // КОНЕЦ
+# endregion ••••••••••••• КОМАНДА РАЗБЛОКИРОВКИ ПОЛЬЗОВАТЕЛЯ В ГЛОБАЛЬНОМ КАНАЛЕ // КОНЕЦ
 
 
-# ------------- КОМАНДА ВЫВОДА СПИСКА СЕРВЕРОВ
-@slash.subcommand(
-    base='servers',
-    name='show',
-    guild_ids=guild_ids_for_slash(),
-    base_desc='Действия с серверами',
-    description='Вывести список серверов, к которым подключено приложение'
-)
-async def servers_show(ctx):
-    # Создаём сообщение
-    emServers = discord.Embed(title='СПИСОК СЕРВЕРОВ', description='Список серверов, к которым подключено приложение. '
-                                                                   'Данный список не относится к белому списку '
-                                                                   'серверов которым разрешено обмениваться '
-                                                                   'сообщениями.', colour=0x2F3136)
-    emServers.add_field(name='Список серверов', value="".join(
-        guild.name + f' (ID:{guild.id})\n' for guild in client.guilds)
-                        )
+# region •••••••••••••••• КОМАНДА ОТОБРАЖЕНИЯ ЧЁРНОГО СПИСОКА
+@user.command(guild_ids=guild_ids_for_slash(), default_permission=False, name='blacklist', description='Показать список пользователей заблокированных в глобальном канале.')
+# @permissions.is_user(USER_ID)
+# Показ содержимого чёрного списка
+# TODO: Нормальное форматирование таблицы
+async def user_blacklist(ctx):
+    full_list = await sql_conn.execute('select userid, add_timestamp, reason, banner_id from black_list')
+    table = ['username  userid    add_timestamp   reason  banner_id']
+    for user in (await full_list.fetchall()):
+        username = await fetch_or_get_user(int(user[0]))
+        if isinstance(username, discord.User):
+            username = username.name
 
-    emServers.set_footer(text=' ' + client.user.name + ' ')
-    # Отправляем сообщение и удаляем его через 60 секунд
-    await ctx.send(embed=emServers, delete_after=60)
+        table.append(str(username) + '   ' + '   '.join([str(item).center(5, ' ') for item in user]))
+    table = "```" + '\n'.join(table) + "```"
+    await ctx.send(table, delete_after=13)
 
 
-# ------------- КОМАНДА ВЫВОДА СПИСКА СЕРВЕРОВ // КОНЕЦ
+# endregion ••••••••••••• КОМАНДА ОТОБРАЖЕНИЯ ЧЁРНОГО СПИСОКА // КОНЕЦ
 
 
-# ------------- КОМАНДА ОТКЛЮЧЕНИЯ ПРИЛОЖЕНИЯ ОТ СЕРВЕРА
-@slash.subcommand(
-    base='servers',
-    name='leave',
-    guild_ids=guild_ids_for_slash(),
-    base_desc='Действия серверами',
-    description='Отключить приложение от сервера'
-)
+# ••••••••••••••••
+
+
+# region •••••••••••••••• СОЗДАЁМ ГРУППУ КОМАНД SERVER ДЛЯ КОМАНД С КОСОЙ ЧЕРТОЙ
+server = client.create_group("server", "Команды для работы с серверами.")
+
+
+# endregion ••••••••••••• СОЗДАЁМ ГРУППУ КОМАНД SERVER ДЛЯ КОМАНД С КОСОЙ ЧЕРТОЙ // КОНЕЦ
+
+
+# region •••••••••••••••• КОМАНДА ВЫВОДА СПИСКА СЕРВЕРОВ
+@server.command(guild_ids=guild_ids_for_slash(), default_permission=False, name='list', description='Вывести список серверов, к которым подключено приложение.')
 # Команду может выполнить только владелец приложения
-async def server_leave(ctx, id_to_leave: str):  # TODO: test it
-    await raise_for_owner(ctx)
+@permissions.is_owner()
+async def server_list(ctx):
+    # Создаём сообщение
+    embed = discord.Embed(title='СПИСОК СЕРВЕРОВ', description='```Список серверов, к которым подключено приложение.```', colour=0x2F3136)
+    embed.add_field(name='СПИСОК СЕРВЕРОВ:', value=''.join(guild.name + f' (ID:{guild.id})\n' for guild in client.guilds))
+    # Отправляем скрытое сообщение
+    await ctx.respond(embed=embed, ephemeral=True)
 
-    if (guild_to_leave := await client.fetch_guild(int(id_to_leave))) is None:  # type: ignore
-        await ctx.send('Сервер с указанным ID не найден', delete_after=13)
+
+# endregion ••••••••••••• КОМАНДА ВЫВОДА СПИСКА СЕРВЕРОВ // КОНЕЦ
+
+
+# region •••••••••••••••• КОМАНДА ОТКЛЮЧЕНИЯ ПРИЛОЖЕНИЯ ОТ СЕРВЕРА
+@server.command(guild_ids=guild_ids_for_slash(), default_permission=False, name='leave', description='Отключить приложение от сервера.')
+# Команду может выполнить только владелец приложения
+@permissions.is_owner()
+async def server_leave(
+    ctx: discord.ApplicationContext,
+    id: Option(str, 'Укажжите ID сервера')):
+
+    if (guild_to_leave := client.get_guild(int(id))) is None:
+        # Создаём сообщение
+        embed = discord.Embed(title='❌ • ВНИМАНИЕ!', description=f'```Сервер с указанным ID ({id}) не найден```', color=0xd40000)
+        # Отправляем скрытое сообщение
+        await ctx.respond(embed=embed, ephemeral=True)
         return
 
     await guild_to_leave.leave()
-    await ctx.send('Сервер с указанным ID успешно покинут', delete_after=13)
+    # Создаём сообщение
+    embed = discord.Embed(title='❌ • ВНИМАНИЕ!', description=f'```Сервер с указанным ID ({id}) успешно покинут```', colour=0x2F3136)
+    # Отправляем скрытое сообщение
+    await ctx.respond(embed=embed, ephemeral=True)
 
 
-# ------------- КОМАНДА ОТКЛЮЧЕНИЯ ПРИЛОЖЕНИЯ ОТ СЕРВЕРА // КОНЕЦ
+# endregion ••••••••••••• КОМАНДА ОТКЛЮЧЕНИЯ ПРИЛОЖЕНИЯ ОТ СЕРВЕРА // КОНЕЦ
 
 
-# ------------- КОМАНДА СОЗДАНИЯ КАНАЛА ДЛЯ ПРИЁМА И ОТПРАВКИ СООБЩЕНИЙ
-@slash.slash(name="setup",
-             description="Создать канала для приёма и передачи сообщений",
-             guild_ids=guild_ids_for_slash())
-# Команду может выполнить только пользователь, с ролью администратор
-async def setup(ctx):
-    if isinstance(ctx.author, discord.User):  # проверка, не в лс ли идёт команда
-        await ctx.send('Использование этой команды допускается только на серверах, не в личных сообщениях',
-                       delete_after=13)
-        return
-
-    if ctx.author.guild_permissions.administrator:  # проверка наличия админских прав на сервере у выполняющего
-        guild = ctx.guild
-        if discord.utils.get(guild.text_channels, name=config.globalchannel) is None:  # проверка на наличие нужного канала
-            # Выдаём права нужные для работы приложения
-            # TODO: manage_channels=True, manage_permissions=True - Требуеют права администратора на сервере
-            overwrites = {
-                guild.me: discord.PermissionOverwrite(read_messages=True, send_messages=True, manage_messages=True, embed_links=True, attach_files=True)
-            }
-            # Создаём канал на сервере
-            await guild.create_text_channel(name=config.globalchannel, topic=config.setup_globalchannel_description, overwrites=overwrites, slowmode_delay=config.setup_globalchannel_cooldown, reason='Создание канала для Wormhole.')
-            await ctx.send(
-                f'Канал {config.globalchannel} успешно создан и будет использоваться для пересылки сообщений',
-                delete_after=13)
-        else:
-            await ctx.send(f'У вас уже есть подходящий канал: {config.globalchannel}', delete_after=13)
-    else:
-        await ctx.send('Для выполнения этой команды вам необходимо обладать правами администратора на этом сервере',
-                       delete_after=13)
+# ••••••••••••••••
 
 
-# ------------- КОМАНДА СОЗДАНИЯ КАНАЛА ДЛЯ ПРИЁМА И ОТПРАВКИ СООБЩЕНИЙ // КОНЕЦ
+# region •••••••••••••••• СОЗДАЁМ ГРУППУ КОМАНД MODERATOR ДЛЯ КОМАНД С КОСОЙ ЧЕРТОЙ
+moderator = client.create_group("moderator", "Команды связанные с серверами.")
 
 
-# ------------- КОМАНДА ВЫВОДА ПРАВИЛ ГЛОБАЛЬНОГО КАНАЛА
-@slash.slash(name="rules",
-             description="Показать правила использования глобального канала",
-             guild_ids=guild_ids_for_slash()
-             )
-async def rules_cmd(ctx):
-    emRules = discord.Embed(title='ПРАВИЛА', description=config.globalchannel_rules, colour=0x2F3136)
-    await ctx.send(embed=emRules, delete_after=60)
+# endregion ••••••••••••• СОЗДАЁМ ГРУППУ КОМАНД MODERATOR ДЛЯ КОМАНД С КОСОЙ ЧЕРТОЙ // КОНЕЦ
 
 
-# ------------- КОМАНДА ВЫВОДА ПРАВИЛ ГЛОБАЛЬНОГО КАНАЛА // КОНЕЦ
-
-@slash.slash(
-    name='moderators',
-    description='Показать модераторов глобального канала',
-    guild_ids=guild_ids_for_slash()
-)
-async def rules_cmd(ctx):
+# region •••••••••••••••• КОМАНДА ВЫВОДА СПИСКА МОДЕРАТОРОВ
+@moderator.command(guild_ids=guild_ids_for_slash(), default_permission=False, name='list', description='Вывести список модераторов глобального канала.')
+# Команду может выполнить только владелец приложения
+@permissions.is_owner()
+async def moderator_list(ctx):
     moderators = str()
     for moderator_id in await get_owners():
         moderator_user = await fetch_or_get_user(moderator_id, suppress=False)
@@ -644,30 +604,10 @@ async def rules_cmd(ctx):
     await ctx.send(embed=emModers, delete_after=60)
 
 
-# ------------- TODO: Указать комментарий, описывающий данный блок кода ᓚᘏᗢ
-async def shutdown_async():
-    logger.info('Executing shutdown_async')
-    # await send_to_servers(content='Выключение', delete_after=13)
-    await client.change_presence(status=discord.Status.offline)
-    await client.close()
+# endregion ••••••••••••• КОМАНДА ВЫВОДА СПИСКА МОДЕРАТОРОВ // КОНЕЦ
 
 
-def shutdown(sig, frame):
-    logger.info(f'Shutting down by signal: {sig}')
-    asyncio.create_task(shutdown_async())
-
-
-signal.signal(signal.SIGTERM, shutdown)
-signal.signal(signal.SIGINT, shutdown)
-
-# ------------- ᓚᘏᗢ
-
-
-# Генерируемый токен при создание приложения на странице https://discord.com/developers/applications, необходимый для
-# подключения к серверу Прописывается в config.py
 client.run(config.token)
 
-# Console Log // Выводим сообщение об отключение приложения в консоль Python
-logger.info('Exited. You can safely kill the process')
 
-# ------------- СОЗДАЁМ ПРИЛОЖЕНИЕ И НАЗЫВАЕМ ЕГО CLIENT  // КОНЕЦ
+# •••••• 🦆 •••••• СОЗДАЁМ ПРИЛОЖЕНИЕ И НАЗЫВАЕМ ЕГО CLIENT  // КОНЕЦ
