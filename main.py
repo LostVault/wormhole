@@ -315,33 +315,27 @@ async def on_message(message):
                 # Удаляем сообщение пользователя
                 await message.delete()
                 # Создаём информационное сообщение
-                emFilterWhiteLinks = discord.Embed(title='❌ • ВНИМАНИЕ!', description='```Сообщения с ссылками на сайты не из белого списка не пропускаются в глобальный чат.```', color=0xd40000)
+                embed = discord.Embed(title='❌ • ВНИМАНИЕ!', description='```Сообщения с ссылками на сайты не из белого списка не пропускаются в глобальный чат.```', color=0xd40000)
                 # Отправляем информационное сообщение и удаляем его через 13 секунд
-                await message.channel.send(embed=emFilterWhiteLinks, delete_after=13)
+                await message.channel.send(embed=embed, delete_after=13)
                 return
-
-    # Создаём сообщение в глобальный канал
-    emGlobalMessage = discord.Embed(description=f" **{message.author.name}**: {message.content}", colour=0x2F3136)
-    emGlobalMessage.set_footer(text=f"Сервер: {message.guild.name} // ID пользователя: {message.author.id}")
 
     # Проверяем расширение файлов
     for attachment in message.attachments:
         if attachment.filename.endswith(('bmp', 'jpeg', 'jpg', 'png', 'gif')):
-            emGlobalMessage.set_image(url=attachment.url)
+            pass
         else:
             # Удаляем сообщение пользователя
             await message.delete()
             # Создаём информационное сообщение
-            emFilterFormatFiles = discord.Embed(title='❌ • ВНИМАНИЕ!', description='```Файлы с расширениями *.bmp, *.jpeg, *.jpg, *.png, *.gif, не пропускаются в глобальный чат.```', color=0xd40000)
+            emFilterFormatFiles = discord.Embed(title='❌ • ВНИМАНИЕ!', description='```Только файлы с расширениями *.bmp, *.jpeg, *.jpg, *.png, *.gif, пропускаются в глобальный чат.```', color=0xd40000)
             # Отправляем информационное сообщение и удаляем его через 13 секунд
             await message.channel.send(embed=emFilterFormatFiles, delete_after=13)
             return
 
-    # Удаляем сообщение, отправленное пользователем
-    # await message.delete()
-
     # Отправляем сообщение
-    await send_to_servers(f'> Сервер: `{message.guild.name}` // ID пользователя: `{message.author.id}`\n{message.content}')
+    await message.add_reaction("✅")
+    await send_to_servers(f'> Сервер: `{message.guild.name}` // ID пользователя: `{message.author.id}`\n{message.content}\n{message.attachments[0].url}')
 
 
 # endregion ••••••••••••• ВЫВОДИМ СООБЩЕНИЯ ПОЛЬЗОВАТЕЛЕЙ В КОНСОЛЬ ПРИЛОЖЕНИЯ И ПЕРЕНАПРАВЛЯЕМ НА ДРУГИЕ СЕРВЕРА // КОНЕЦ
@@ -381,6 +375,9 @@ async def information(ctx):
 
 
 # endregion ••••••••••••• КОМАНДА ОТОБРАЖЕНИЯ ИФОРМАЦИИ О ПРИЛОЖЕНИЕ // КОНЕЦ
+
+
+# ••••••••••••••••
 
 
 # region •••••••••••••••• КОМАНДА ВЫВОДА ПРАВИЛ ГЛОБАЛЬНОГО КАНАЛА
