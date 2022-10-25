@@ -1,0 +1,25 @@
+{
+  "name": "Wormhole",
+  "description": "Приложение для обмена текстовыми и файловыми сообщениями между серверами по игре Elite Dangerous в Discord.",
+  "repository": "https://github.com/beigbeider/wormhole/tree/deploy",
+  "logo": "",
+  "keywords": ["discord", "bridge"]
+
+"env": {
+    "APP_TOKEN": {
+      "description": "Токен для бота.",
+      "generator": "secret"
+    },
+    "APP_GLOBALCHANNEL": {
+      "description": "Имя глобального канала.",
+      "value": "wormhole"
+    }
+    "APP_ENVIRONMENT": {
+      "description": "Тип окружения, в котором происходит запуск.",
+      "value": "prod"
+    }
+    "FILTER_COOLDOWN": {
+      "description": "Промежуток времени в которое можно отправить одно сообщение.",
+      "value": "30"
+    }
+}
