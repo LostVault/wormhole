@@ -49,6 +49,7 @@ import config  # Импортируем модуль с настройками �
 # region •••••••••••••••• РЕГИСТРИРУЕМ КОМАНДЫ С КОСОЙ ЧЕРТОЙ НА СЕРВЕРАХ
 MY_GUILD = discord.Object(id=876241237848502302)  # replace with your guild id
 
+
 class MyClient(discord.Client):
     def __init__(self, *, intents: discord.Intents):
         super().__init__(intents=intents)
@@ -58,6 +59,8 @@ class MyClient(discord.Client):
         # Примечание: При использовании commands.Bot вместо discord.Client, вместо этого бот будет поддерживать свое собственное дерево.
         self.tree = app_commands.CommandTree(self)
 
+        self.webhooks_channels: dict[int, discord.Webhook] = dict()  # mapping channel id to webhooks
+
     # Синхронизируем команды с серверами к которым подключено приложение
     # Вместо того, чтобы указывать ID сервера для каждой команды, вместо этого мы копируем наши глобальные команды.
     # Поступая таким образом, нам не нужно ждать до часа, пока они не будут показаны конечному пользователю.
@@ -66,6 +69,76 @@ class MyClient(discord.Client):
         self.tree.copy_global_to(guild=MY_GUILD)
         await self.tree.sync(guild=MY_GUILD)
 
+    async def webhook_for_send_update(self):
+        # Webhooks receiving
+        for guild in self.guilds:
+            if channel := discord.utils.get(guild.text_channels, name=config.globalchannel):
+                try:
+                    channel_webhooks = await channel.webhooks()
+                    for webhook in channel_webhooks:
+                        if webhook.name.startswith(config.globalchannel):
+                            self.webhooks_channels[channel.id] = webhook
+                            break
+
+                    else:  # Appropriate webhook wasn't found
+                        webhook = await channel.create_webhook(
+                            name=config.globalchannel,
+                            reason='Webhook for sending wormhole messages'
+                        )
+                        self.webhooks_channels[channel.id] = webhook
+
+                except Exception:
+                    logger.warning(f'An error occurred during webhooks fetching, guild: {guild.name}', exc_info=True)
+
+    async def send_global_message(self, source_message: discord.Message, *args, **kwargs):
+        """
+        A method to send `source_message` to all `config.globalchannel channels exclude source channel.
+        If possible, send message over a webhook with nickname replacing else send straight as bot.
+        It also takes care of message formatting
+
+        :param source_message:
+        :return:
+        """
+
+        for guild in self.guilds:
+            if channel := discord.utils.get(guild.text_channels, name=config.globalchannel):
+                try:
+                    if channel.guild != message_guild:
+                        await self._send_message_bot_or_webhook(source_message, channel, *args, **kwargs)
+
+                except discord.Forbidden as e:
+                    logger.warning(f"Не удалось отправить сообщение {guild.name}: discord.Forbidden\n{e}")
+                except discord.HTTPException as e:
+                    logger.warning(f"Не удалось отправить сообщение {guild.name}: discord.HTTPException\n{e}")
+                except Exception as e:
+                    logger.warning(f"Не удалось отправить сообщение {guild.name}: {e}")
+
+    async def _send_message_bot_or_webhook(self, src_msg: discord.Message, target_channel: discord.TextChannel, *args, **kwargs):
+        if target_channel.id in self.webhooks_channels:
+            # Try to send using webhook
+            message = self.message_format_webhook(src_msg)
+            try:
+                await self.webhooks_channels[target_channel.id].send(
+                    content=message,
+                    username=src_msg.author.name,
+                    avatar_url=src_msg.author.avatar.url,
+                    *args,
+                    **kwargs
+                )
+                return
+
+            except Exception:
+                logger.warning(f'Failed to send msg over webhook to {target_channel.name}', exc_info=True)
+
+        # Else try to send it as the bot
+        message = self.message_format_bot(src_msg)
+        await target_channel.send(content=message, *args, **kwargs)
+
+    def message_format_webhook(self, src_msg: discord.Message):
+        return src_msg.content
+
+    def message_format_bot(self, src_msg: discord.Message):
+        return f'> **{src_msg.author.name}** // Сервер: `{src_msg.guild.name}` // ID пользователя: `{src_msg.author.id}`\n{src_msg.content}'
 
 # endregion ••••••••••••• РЕГИСТРИРУЕМ КОМАНДЫ С КОСОЙ ЧЕРТОЙ НА СЕРВЕРАХ // КОНЕЦ
 
@@ -130,6 +203,8 @@ async def on_ready():
 
     # Изменяем статус приложения
     await client.change_presence(status=discord.Status.online, activity=discord.Game(config.app_status_game))
+
+    await client.webhook_for_send_update()
 
 
 # endregion ••••••••••••• РЕГИСТРИРУЕМ ИНФОРМАЦИЮ О ПРИЛОЖЕНИЕ В КОНСОЛЬ // КОНЕЦ
@@ -260,27 +335,6 @@ def handle_cooldown(user_id: int) -> typing.Union[bool, int]:
 
 
 # region •••••••••••••••• СОЗДАЁМ ШАБЛОН ДЛЯ ПЕРЕСЫЛКИ СООБЩЕНИЯ НА ВСЕ СЕРВЕРА
-async def send_Global_messages(*args, **kwargs):
-    """
-    send message to all connected servers to config.globalchannel channel, arguments as for channel.send()
-    :param args:
-    :param kwargs:
-    :return:
-    """
-    logger.debug(f"Sending to servers {args} {kwargs}")
-    for guild in client.guilds:
-        if channel := discord.utils.get(guild.text_channels, name=config.globalchannel):
-            try:
-                # Сравниваем по очереди сервера из списка серверов с сервером с которого отправлено сообщение
-                # Если сервер не совпадает то отправляем в его глобальный чат сообщение, а в ином случае нет
-                if channel.guild != message_guild:
-                    await channel.send(*args, **kwargs)
-            except discord.Forbidden as e:
-                logger.warning(f"Не удалось отправить сообщение {guild.name}: discord.Forbidden\n{e}")
-            except discord.HTTPException as e:
-                logger.warning(f"Не удалось отправить сообщение {guild.name}: discord.HTTPException\n{e}")
-            except Exception as e:
-                logger.warning(f"Не удалось отправить сообщение {guild.name}: {e}")
 
 
 # endregion ••••••••••••• СОЗДАЁМ ШАБЛОН ДЛЯ ПЕРЕСЫЛКИ СООБЩЕНИЯ НА ВСЕ СЕРВЕРА // КОНЕЦ
@@ -420,7 +474,8 @@ async def on_message(message):
     message_guild = message.guild
 
     # Отправляем сообщение
-    await send_Global_messages(f'> **{message.author.name}** // Сервер: `{message.guild.name}` // ID пользователя: `{message.author.id}`\n{message.content}', files=[await f.to_file() for f in message.attachments])
+    # await send_Global_messages(f'> **{message.author.name}** // Сервер: `{message.guild.name}` // ID пользователя: `{message.author.id}`\n{message.content}', files=[await f.to_file() for f in message.attachments])
+    await client.send_global_message(message, files=[await f.to_file() for f in message.attachments])
     # Помечаем сообщение реакцией как отправленное
     # TODO: Хотя оно наверное в любом случае отправится, надо сделать какую-то проверку ᓚᘏᗢ
     await message.add_reaction("✅")
