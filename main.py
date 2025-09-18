@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # ------------- ИМПОРТ МОДУЛЕЙ
-import asyncio  # TODO: Указать комментарий, описывающий данную строку ᓚᘏᗢ
+import asyncio  # Асинхронное программирование
 import logging  # Импортируем модуль логирования
 import time
 import typing
@@ -8,24 +8,19 @@ import typing
 import aiosqlite  # Импортируем модуль работы с базами SQLite
 import discord  # Импортируем основной модуль
 from discord.ext import commands  # Импортируем команды из модуля discord.ext
-from discord_slash import SlashCommand  # Импортируем модуль команд с косой чертой (slash)
-from discord_slash.utils.manage_commands import create_option
+from discord import app_commands  # Импортируем нативные slash-команды
 
 import config  # Импортируем настройки приложения
-import signal  # TODO: Указать комментарий, описывающий данную строку ᓚᘏᗢ
+import signal  # Обработка сигналов системы
 
-sql_conn: aiosqlite.Connection # TODO: Указать комментарий, описывающий данную строку ᓚᘏᗢ
+sql_conn: aiosqlite.Connection  # Подключение к базе данных SQLite
 # ------------- ИМПОРТ МОДУЛЕЙ // КОНЕЦ
 
 
 # ------------- СОЗДАЁМ ПРИЛОЖЕНИЕ И НАЗЫВАЕМ ЕГО CLIENT
-client = commands.Bot(description=config.client_short_description, command_prefix=None, help_command=None)
-
-# ------------- СОЗДАЁМ ОБРАБОТКУ КОМАНДЫ С КОСОЙ ЧЕРТОЙ ЧЕРЕЗ СОЗДАННОЕ ПРИЛОЖЕНИЕ
-slash = SlashCommand(client, sync_commands=True)
-
-# ------------- СОЗДАЁМ ОБРАБОТКУ КОМАНДЫ С КОСОЙ ЧЕРТОЙ ЧЕРЕЗ СОЗДАННОЕ ПРИЛОЖЕНИЕ // КОНЕЦ
-
+intents = discord.Intents.default()
+intents.message_content = True
+client = commands.Bot(description=config.client_short_description, command_prefix=None, help_command=None, intents=intents)
 
 # ------------- РЕГИСТРИРУЕМ СОБЫТИЯ ПРИЛОЖЕНИЯ
 logging.basicConfig(level=logging.WARNING,
@@ -96,7 +91,7 @@ async def send_to_servers(*args, **kwargs):
 # ------------- СОЗДАЁМ ШАБЛОН ДЛЯ ПЕРЕСЫЛКИ СООБЩЕНИЯ НА ВСЕ СЕРВЕРА // КОНЕЦ
 
 
-# ------------- TODO: Указать комментарий, описывающий данный блок кода ᓚᘏᗢ
+# ------------- УТИЛИТЫ ДЛЯ РАБОТЫ С ПОЛЬЗОВАТЕЛЯМИ
 async def fetch_or_get_user(userid: int, suppress=True):
     user = client.get_user(userid)
     if user is None:
@@ -126,15 +121,15 @@ async def get_owners() -> list:
     return owners
 
 
-async def raise_for_owner(ctx):
-    if ctx.author.id not in await get_owners():
-        raise discord.ext.commands.NotOwner
+async def raise_for_owner(interaction: discord.Interaction):
+    if interaction.user.id not in await get_owners():
+        raise commands.NotOwner("Только владелец бота может использовать эту команду")
 
 
-# ------------- ᓚᘏᗢ
+# ------------- УТИЛИТЫ ДЛЯ РАБОТЫ С ПОЛЬЗОВАТЕЛЯМИ // КОНЕЦ
 
 
-# ------------- TODO: Указать комментарий описывающий данный блок кода ᓚᘏᗢ
+# ------------- ПОЛУЧЕНИЕ ID СЕРВЕРОВ ДЛЯ КОМАНД
 def guild_ids_for_slash():
     if config.environment_type == 'prod':
         return None
@@ -142,7 +137,7 @@ def guild_ids_for_slash():
         return [guild.id for guild in client.guilds]
 
 
-# ------------- ᓚᘏᗢ
+# ------------- ПОЛУЧЕНИЕ ID СЕРВЕРОВ ДЛЯ КОМАНД // КОНЕЦ
 
 
 # ------------- СОЗДАЁМ ШАБЛОН С ССЫЛКОЙ ДЛЯ ПОДКЛЮЧЕНИЯ ПРИЛОЖЕНИЯ К СЕРВЕРУ
@@ -176,6 +171,12 @@ async def on_ready():
     # Изменяем статус приложения
     await client.change_presence(status=discord.Status.online, activity=discord.Game('Elite Dangerous'))
 
+    # Синхронизируем команды
+    if config.environment_type != 'prod':
+        await client.tree.sync(guild=discord.Object(id=guild_ids_for_slash()[0]))
+    else:
+        await client.tree.sync()
+
     # Создаём информационное сообщение
     emStatusOn = discord.Embed(title='⚠ • ВНИМАНИЕ!', description='```Приложение запущено.```', color=0x90D400)
     emStatusOn.set_image(url="https://media.discordapp.net/attachments/682731260719661079/682731350922493952/ED1.gif")
@@ -195,7 +196,7 @@ async def on_guild_join(guild):
     emAppJoinNewServer = discord.Embed(title='⚠ • ВНИМАНИЕ!', description=f'```Приложение было подключено к новому '
                                                                           f'серверу "{guild.name}"!```',
                                        color=0x90D400)
-    emAppJoinNewServer.set_thumbnail(url=guild.icon_url)
+    emAppJoinNewServer.set_thumbnail(url=guild.icon.url if guild.icon else None)
     emAppJoinNewServer.set_footer(text=client.user.name)
     # Отправляем информационное сообщение и удаляем его через 60 секунд
     await send_to_servers(embed=emAppJoinNewServer)
@@ -204,8 +205,7 @@ async def on_guild_join(guild):
 @client.event
 async def on_guild_remove(guild):
     logger.info(f'Leaving "{guild.name}"')
-    # Создаём информационное сообщение TODO: Возможно нужно изменить сообщение на ```Приложение отключено от сервера
-    #  "{guild.name}" и больше не учавствовать в обмене сообщениями с ним.```
+    # Создаём информационное сообщение
     emAppDisconnectServer = discord.Embed(title='❌ • ВНИМАНИЕ!', description=f'```Сервер "{guild.name}" был отключён '
                                                                              f'от системы обмена сообщениями.```',
                                           color=0xd40000)
@@ -218,22 +218,22 @@ async def on_guild_remove(guild):
 
 
 # ------------- РЕГИСТРИРУЕМ ОШИБКИ КОМАНД С КОСОЙ ЧЕРТОЙ И СООБЩАЕМ ОБ ЭТОМ ПОЛЬЗОВАТЕЛЯМ
-@client.event
-async def on_slash_command_error(ctx, error):
+@client.tree.error
+async def on_app_command_error(interaction: discord.Interaction, error: app_commands.AppCommandError):
     logger.warning(
-        f"An error occurred: {ctx.guild} / {ctx.author} / command: {ctx.name}; Error: {error}", exc_info=error)
-    if isinstance(error, discord.ext.commands.NotOwner):
+        f"An error occurred: {interaction.guild} / {interaction.user} / command: {interaction.command.name}; Error: {error}", exc_info=error)
+    if isinstance(error, commands.NotOwner):
         # Создаём информационное сообщение
         emSlashErrorNotOwner = discord.Embed(title='❌ • ВНИМАНИЕ!',
-                                             description='```' + ctx.author.mention + ', выполнение этой команды '
+                                             description='```' + interaction.user.mention + ', выполнение этой команды '
                                                                                       'доступно только владельцу '
                                                                                       'приложения.```',
                                              color=0xd40000)
         # Отправляем информационное сообщение и удаляем его через 13 секунд
-        await ctx.send(embed=emSlashErrorNotOwner, delete_after=13)
+        await interaction.response.send_message(embed=emSlashErrorNotOwner, delete_after=13, ephemeral=True)
         return
 
-    await ctx.send(str(error), delete_after=13)
+    await interaction.response.send_message(str(error), delete_after=13, ephemeral=True)
 
 
 # ------------- РЕГИСТРИРУЕМ ОШИБКИ КОМАНД С КОСОЙ ЧЕРТОЙ И СООБЩАЕМ ОБ ЭТОМ ПОЛЬЗОВАТЕЛЯМ // КОНЕЦ
@@ -241,13 +241,12 @@ async def on_slash_command_error(ctx, error):
 
 # ------------- ВЫВОДИМ ИСПОЛЬЗОВАНИЕ КОМАНД С КОСОЙ ЧЕРТОЙ В КОНСОЛЬ PYTHON
 @client.event
-async def on_slash_command(ctx):
-    logger.info(f'Got slash command; {ctx.guild} / {ctx.author} / command: {ctx.name};'
-                f' subcommand_name: {ctx.subcommand_name};'
-                f' subcommand_group: {ctx.subcommand_group}; options: {ctx.data.get("options")}')
+async def on_interaction(interaction: discord.Interaction):
+    if interaction.type == discord.InteractionType.application_command:
+        logger.info(f'Got slash command; {interaction.guild} / {interaction.user} / command: {interaction.command.name}')
 
 
-# ------------- ВЫВОДИМ ИСПОЛЬЗОВАНИЕ КОМАНД С КОСОЙ ЧЕРТОЙ В КОНСОЛЬ PYTHON // КОНЕЦ
+# ------------- ВЫВОДИМ ИСПОЛЬЗОВАНИЕ КОМАНД С КОСОЯ ЧЕРТОЙ В КОНСОЛЬ PYTHON // КОНЕЦ
 
 
 # ------------- ВЫВОДИМ СООБЩЕНИЯ ПОЛЬЗОВАТЕЛЕЙ В КОНСОЛЬ ПРИЛОЖЕНИЯ И ПЕРЕНАПРАВЛЯЕМ НА ДРУГИЕ СЕРВЕРА
@@ -314,7 +313,6 @@ async def on_message(message):
 
     # Проверяйем время с последнего сообщения отправленное пользователем
     kd_status = handle_cooldown(message.author.id)
-    # if isinstance(kd_status, int):
     if type(kd_status) is int:
         emFilterCooldown = discord.Embed(title='❌ • ВНИМАНИЕ!', description=f'```С последнего сообщения прошло слишком мало времени, попробуйте отправить сообщение повторно через {kd_status} секунд.```', color=0xd40000)
         # Удаляем сообщение пользователя
@@ -325,7 +323,7 @@ async def on_message(message):
 
     # Создаём сообщение в глобальный канал
     emGlobalMessage = discord.Embed(description=f" **{message.author.name}**: {message.content}", colour=0x2F3136)
-    emGlobalMessage.set_footer(icon_url=message.guild.icon_url, text=f"Сервер: {message.guild.name} // ID пользователя: {message.author.id}")
+    emGlobalMessage.set_footer(icon_url=message.guild.icon.url if message.guild.icon else None, text=f"Сервер: {message.guild.name} // ID пользователя: {message.author.id}")
 
     # Игнорируем сообщения с ссылками не из белого списка
     splitted_message: list = message.content.lower().split(' ')
@@ -370,27 +368,23 @@ async def on_message(message):
 
 
 # ------------- КОМАНДА ПРОВЕРКА ПРИЛОЖЕНИЯ
-@slash.slash(name="ping",
-             description="Проверить состояние приложения",
-             guild_ids=guild_ids_for_slash())
-async def ping(ctx):
+@client.tree.command(name="ping", description="Проверить состояние приложения")
+async def ping(interaction: discord.Interaction):
     # Создаём информационное сообщение
     emPing = discord.Embed(
         title='⚠ • ВНИМАНИЕ!',
         description=f'Latency {round(client.latency * 100, 1)} ms',
         colour=0x90D400)
     # Отправляем информационное сообщение и удаляем его через 13 секунд
-    await ctx.send(embed=emPing, delete_after=13)
+    await interaction.response.send_message(embed=emPing, delete_after=13, ephemeral=True)
 
 
 # ------------- КОМАНДА ПРОВЕРКА ПРИЛОЖЕНИЯ // КОНЕЦ
 
 
 # ------------- КОМАНДА ОТОБРАЖЕНИЯ ИНФОРМАЦИИ О ПРИЛОЖЕНИИ
-@slash.slash(name="information",
-             description="Показать информацию о приложение",
-             guild_ids=guild_ids_for_slash())
-async def information(ctx):
+@client.tree.command(name="information", description="Показать информацию о приложение")
+async def information(interaction: discord.Interaction):
     # Создаём сообщение
     emInformation = discord.Embed(title='ИНФОРМАЦИЯ', description=config.client_full_description.format(
         invite_link=get_invite_link(client.user.id)),
@@ -398,75 +392,45 @@ async def information(ctx):
 
     emInformation.add_field(name='Разработчики', value='• <@420130693696323585>\n• <@665018860587450388>')
     emInformation.add_field(name='Благодарности', value='• <@478527700710195203>')
-    # emInformation.add_field(name='Список серверов', value="".join(guild.name + '\n' for guild in client.guilds))
     emInformation.set_footer(text=client.user.name)
     # Отправляем сообщение и удаляем его через 60 секунд
-    await ctx.send(embed=emInformation, delete_after=60)
+    await interaction.response.send_message(embed=emInformation, delete_after=60)
 
 
 # ------------- КОМАНДА ОТОБРАЖЕНИЯ ИФОРМАЦИИ О ПРИЛОЖЕНИЕ // КОНЕЦ
 
 
 # ------------- КОМАНДА ЗАПИСИ ПОЛЬЗОВАТЕЛЯ В ЧЁРНЫЙ СПИСОК
-@slash.subcommand(
-    base='blacklist',
-    name='add',
-    guild_ids=guild_ids_for_slash(),
-    base_desc='Действия с чёрным списком',
-    description='Внести пользователя в чёрный список приложения',
-    options=[
-        create_option(
-            name='user',
-            description='userid to ban',
-            option_type=6,
-            required=True),
-        create_option(
-            name='reason',
-            description='reason to ban',
-            option_type=3,
-            required=False
-        )])
-async def blacklist_add(ctx, user, reason=None):
-    await raise_for_owner(ctx)
+@client.tree.command(name="blacklist_add", description="Внести пользователя в чёрный список приложения")
+@app_commands.describe(user="Пользователь для добавления в чёрный список", reason="Причина бана")
+async def blacklist_add(interaction: discord.Interaction, user: discord.User, reason: str = None):
+    await raise_for_owner(interaction)
 
-    if isinstance(user, str):
-        userid = int(user)
-    else:
-        userid = user.id  # Probably discord.Member or discord.User, anyway, will raise AttributeError if I'm wrong
+    userid = user.id
 
     is_userid_banned = bool((await (await sql_conn.execute('select count(*) from black_list where userid = ?;',
                                                            [userid])).fetchone())[0])
     if is_userid_banned:
-        await ctx.send('Этот пользователь уже есть в чёрном списке приложения', delete_after=13)
+        await interaction.response.send_message('Этот пользователь уже есть в чёрном списке приложения', delete_after=13, ephemeral=True)
         return
 
     await sql_conn.execute('insert into black_list (userid, reason, banner_id)'
-                           ' values (?, ?, ?);', [userid, reason, ctx.author.id])
+                           ' values (?, ?, ?);', [userid, reason, interaction.user.id])
     await sql_conn.commit()
 
     # Создаём информационное сообщение
-    # TODO: Добавить имя пользователя по мимо его ID
-    # TODO: Возможно это сообщение надо отправлять в глобальный чат
-    emBlackListAdd = discord.Embed(title='⚠ • ВНИМАНИЕ!', description=f'```Пользователь с ID {userid} занесён в '
+    emBlackListAdd = discord.Embed(title='⚠ • ВНИМАНИЕ!', description=f'```Пользователь {user.name} (ID: {userid}) занесён в '
                                                                       f'чёрный список приложения```', color=0x90D400)
     # Отправляем информационное сообщение и удаляем его через 13 секунд
-    await ctx.send(embed=emBlackListAdd, delete_after=13)
+    await interaction.response.send_message(embed=emBlackListAdd, delete_after=13)
 
 
 # ------------- КОМАНДА ЗАПИСИ ПОЛЬЗОВАТЕЛЯ В ЧЁРНЫЙ СПИСОК // КОНЕЦ
 
 
 # ------------- КОМАНДА ОТОБРАЖЕНИЯ ЧЁРНОГО СПИСОКА
-# Показ содержимого чёрного списка
-# TODO: Нормальное форматирование таблицы
-@slash.subcommand(
-    base='blacklist',
-    name='show',
-    guild_ids=guild_ids_for_slash(),
-    base_desc='Действия с чёрным списком',
-    description='Показать чёрный список'
-)
-async def blacklist_show(ctx):
+@client.tree.command(name="blacklist_show", description="Показать чёрный список")
+async def blacklist_show(interaction: discord.Interaction):
     full_list = await sql_conn.execute('select userid, add_timestamp, reason, banner_id from black_list')
     table = ['username  userid    add_timestamp   reason  banner_id']
     for user in (await full_list.fetchall()):
@@ -476,70 +440,47 @@ async def blacklist_show(ctx):
 
         table.append(str(username) + '   ' + '   '.join([str(item).center(5, ' ') for item in user]))
     table = "```" + '\n'.join(table) + "```"
-    await ctx.send(table, delete_after=13)
+    await interaction.response.send_message(table, delete_after=13, ephemeral=True)
 
 
 # ------------- КОМАНДА ОТОБРАЖЕНИЯ ЧЁРНОГО СПИСОКА // КОНЕЦ
 
 
 # ------------- КОМАНДА УДАЛЕНИЯ ПОЛЬЗОВАТЕЛЯ ИЗ ЧЁРНОГО СПИСКА
-@slash.subcommand(
-    base='blacklist',
-    name='remove',
-    guild_ids=guild_ids_for_slash(),
-    base_desc='Действия с чёрным списком',
-    description='Удалить пользователя из чёрного списка приложения',
-    options=[
-        create_option(
-            name='user',
-            description='Упомянуть пользователя или указать его ID',
-            option_type=6,
-            required=True)
-    ])
-async def blacklist_remove(ctx, user):
-    await raise_for_owner(ctx)
+@client.tree.command(name="blacklist_remove", description="Удалить пользователя из чёрного списка приложения")
+@app_commands.describe(user="Пользователь для удаления из чёрного списка")
+async def blacklist_remove(interaction: discord.Interaction, user: discord.User):
+    await raise_for_owner(interaction)
 
-    if isinstance(user, str):
-        userid = int(user)
-    else:
-        userid = user.id  # Probably discord.Member or discord.User, anyway, will raise AttributeError if I'm wrong
+    userid = user.id
 
     is_userid_banned = bool((await (await sql_conn.execute('select count(*) from black_list where userid = ?;',
                                                            [userid])).fetchone())[0])
     if not is_userid_banned:
         # Создаём информационное сообщение
-        # TODO: Добавить в сообщение имя пользователя и ID
-        emBlackListRemoveNoUser = discord.Embed(title='⚠ • ВНИМАНИЕ!', description=f'```Этот пользователь не '
+        emBlackListRemoveNoUser = discord.Embed(title='⚠ • ВНИМАНИЕ!', description=f'```Пользователь {user.name} не '
                                                                                    f'находится чёрном списке '
                                                                                    f'приложения.```', color=0xd40000)
         # Отправляем информационное сообщение и удаляем его через 13 секунд
-        await ctx.send(embed=emBlackListRemoveNoUser, delete_after=13)
+        await interaction.response.send_message(embed=emBlackListRemoveNoUser, delete_after=13, ephemeral=True)
         return
 
     await sql_conn.execute('delete from black_list where userid = ?', [userid])
     await sql_conn.commit()
     # Создаём информационное сообщение
-    # TODO: Добавить в сообщение имя пользователя и ID
-    # TODO: Возможно это сообщение надо отправлять в глобальный чат
-    emBlackListRemoveUser = discord.Embed(title='⚠ • ВНИМАНИЕ!', description=f'```Пользователь успешно удалён из '
+    emBlackListRemoveUser = discord.Embed(title='⚠ • ВНИМАНИЕ!', description=f'```Пользователь {user.name} успешно удалён из '
                                                                              f'чёрного списка приложения.```',
                                           color=0x90D400)
     # Отправляем информационное сообщение и удаляем его через 13 секунд
-    await ctx.send(embed=emBlackListRemoveUser, delete_after=13)
+    await interaction.response.send_message(embed=emBlackListRemoveUser, delete_after=13)
 
 
 # ------------- КОМАНДА УДАЛЕНИЯ ПОЛЬЗОВАТЕЛЯ ИЗ ЧЁРНОГО СПИСКА // КОНЕЦ
 
 
 # ------------- КОМАНДА ВЫВОДА СПИСКА СЕРВЕРОВ
-@slash.subcommand(
-    base='servers',
-    name='show',
-    guild_ids=guild_ids_for_slash(),
-    base_desc='Действия с серверами',
-    description='Вывести список серверов, к которым подключено приложение'
-)
-async def servers_show(ctx):
+@client.tree.command(name="servers_show", description="Вывести список серверов, к которым подключено приложение")
+async def servers_show(interaction: discord.Interaction):
     # Создаём сообщение
     emServers = discord.Embed(title='СПИСОК СЕРВЕРОВ', description='Список серверов, к которым подключено приложение. '
                                                                    'Данный список не относится к белому списку '
@@ -551,87 +492,77 @@ async def servers_show(ctx):
 
     emServers.set_footer(text=' ' + client.user.name + ' ')
     # Отправляем сообщение и удаляем его через 60 секунд
-    await ctx.send(embed=emServers, delete_after=60)
+    await interaction.response.send_message(embed=emServers, delete_after=60)
 
 
 # ------------- КОМАНДА ВЫВОДА СПИСКА СЕРВЕРОВ // КОНЕЦ
 
 
 # ------------- КОМАНДА ОТКЛЮЧЕНИЯ ПРИЛОЖЕНИЯ ОТ СЕРВЕРА
-@slash.subcommand(
-    base='servers',
-    name='leave',
-    guild_ids=guild_ids_for_slash(),
-    base_desc='Действия серверами',
-    description='Отключить приложение от сервера'
-)
-# Команду может выполнить только владелец приложения
-async def server_leave(ctx, id_to_leave: str):  # TODO: test it
-    await raise_for_owner(ctx)
+@client.tree.command(name="server_leave", description="Отключить приложение от сервера")
+@app_commands.describe(server_id="ID сервера для отключения")
+async def server_leave(interaction: discord.Interaction, server_id: str):
+    await raise_for_owner(interaction)
 
-    if (guild_to_leave := await client.fetch_guild(int(id_to_leave))) is None:  # type: ignore
-        await ctx.send('Сервер с указанным ID не найден', delete_after=13)
+    try:
+        guild_to_leave = await client.fetch_guild(int(server_id))
+    except:
+        await interaction.response.send_message('Сервер с указанным ID не найден', delete_after=13, ephemeral=True)
+        return
+
+    if guild_to_leave is None:
+        await interaction.response.send_message('Сервер с указанным ID не найден', delete_after=13, ephemeral=True)
         return
 
     await guild_to_leave.leave()
-    await ctx.send('Сервер с указанным ID успешно покинут', delete_after=13)
+    await interaction.response.send_message('Сервер с указанным ID успешно покинут', delete_after=13, ephemeral=True)
 
 
 # ------------- КОМАНДА ОТКЛЮЧЕНИЯ ПРИЛОЖЕНИЯ ОТ СЕРВЕРА // КОНЕЦ
 
 
 # ------------- КОМАНДА СОЗДАНИЯ КАНАЛА ДЛЯ ПРИЁМА И ОТПРАВКИ СООБЩЕНИЙ
-@slash.slash(name="setup",
-             description="Создать канала для приёма и передачи сообщений",
-             guild_ids=guild_ids_for_slash())
-# Команду может выполнить только пользователь, с ролью администратор
-async def setup(ctx):
-    if isinstance(ctx.author, discord.User):  # проверка, не в лс ли идёт команда
-        await ctx.send('Использование этой команды допускается только на серверах, не в личных сообщениях',
-                       delete_after=13)
+@client.tree.command(name="setup", description="Создать канала для приёма и передачи сообщений")
+async def setup(interaction: discord.Interaction):
+    if not interaction.guild:  # проверка, не в лс ли идёт команда
+        await interaction.response.send_message('Использование этой команды допускается только на серверах, не в личных сообщениях',
+                       delete_after=13, ephemeral=True)
         return
 
-    if ctx.author.guild_permissions.administrator:  # проверка наличия админских прав на сервере у выполняющего
-        guild = ctx.guild
+    if interaction.user.guild_permissions.administrator:  # проверка наличия админских прав на сервере у выполняющего
+        guild = interaction.guild
         if discord.utils.get(guild.text_channels, name=config.globalchannel) is None:  # проверка на наличие нужного канала
             # Выдаём права нужные для работы приложения
-            # TODO: manage_channels=True, manage_permissions=True - Требуеют права администратора на сервере
             overwrites = {
                 guild.me: discord.PermissionOverwrite(read_messages=True, send_messages=True, manage_messages=True, embed_links=True, attach_files=True)
             }
             # Создаём канал на сервере
             await guild.create_text_channel(name=config.globalchannel, topic=config.setup_globalchannel_description, overwrites=overwrites, slowmode_delay=config.setup_globalchannel_cooldown, reason='Создание канала для Wormhole.')
-            await ctx.send(
+            await interaction.response.send_message(
                 f'Канал {config.globalchannel} успешно создан и будет использоваться для пересылки сообщений',
-                delete_after=13)
+                delete_after=13, ephemeral=True)
         else:
-            await ctx.send(f'У вас уже есть подходящий канал: {config.globalchannel}', delete_after=13)
+            await interaction.response.send_message(f'У вас уже есть подходящий канал: {config.globalchannel}', delete_after=13, ephemeral=True)
     else:
-        await ctx.send('Для выполнения этой команды вам необходимо обладать правами администратора на этом сервере',
-                       delete_after=13)
+        await interaction.response.send_message('Для выполнения этой команды вам необходимо обладать правами администратора на этом сервере',
+                       delete_after=13, ephemeral=True)
 
 
 # ------------- КОМАНДА СОЗДАНИЯ КАНАЛА ДЛЯ ПРИЁМА И ОТПРАВКИ СООБЩЕНИЙ // КОНЕЦ
 
 
 # ------------- КОМАНДА ВЫВОДА ПРАВИЛ ГЛОБАЛЬНОГО КАНАЛА
-@slash.slash(name="rules",
-             description="Показать правила использования глобального канала",
-             guild_ids=guild_ids_for_slash()
-             )
-async def rules_cmd(ctx):
+@client.tree.command(name="rules", description="Показать правила использования глобального канала")
+async def rules_cmd(interaction: discord.Interaction):
     emRules = discord.Embed(title='ПРАВИЛА', description=config.globalchannel_rules, colour=0x2F3136)
-    await ctx.send(embed=emRules, delete_after=60)
+    await interaction.response.send_message(embed=emRules, delete_after=60)
 
 
 # ------------- КОМАНДА ВЫВОДА ПРАВИЛ ГЛОБАЛЬНОГО КАНАЛА // КОНЕЦ
 
-@slash.slash(
-    name='moderators',
-    description='Показать модераторов глобального канала',
-    guild_ids=guild_ids_for_slash()
-)
-async def rules_cmd(ctx):
+
+@client.tree.command(name="moderators", description="Показать модераторов глобального канала")
+async def moderators_cmd(interaction: discord.Interaction):
     moderators = str()
     for moderator_id in await get_owners():
         moderator_user = await fetch_or_get_user(moderator_id, suppress=False)
@@ -641,13 +572,12 @@ async def rules_cmd(ctx):
         title='Модераторы',
         description=moderators,
     )
-    await ctx.send(embed=emModers, delete_after=60)
+    await interaction.response.send_message(embed=emModers, delete_after=60)
 
 
-# ------------- TODO: Указать комментарий, описывающий данный блок кода ᓚᘏᗢ
+# ------------- ОБРАБОТКА СИГНАЛОВ ВЫКЛЮЧЕНИЯ
 async def shutdown_async():
     logger.info('Executing shutdown_async')
-    # await send_to_servers(content='Выключение', delete_after=13)
     await client.change_presence(status=discord.Status.offline)
     await client.close()
 
@@ -660,7 +590,7 @@ def shutdown(sig, frame):
 signal.signal(signal.SIGTERM, shutdown)
 signal.signal(signal.SIGINT, shutdown)
 
-# ------------- ᓚᘏᗢ
+# ------------- ОБРАБОТКА СИГНАЛОВ ВЫКЛЮЧЕНИЯ // КОНЕЦ
 
 
 # Генерируемый токен при создание приложения на странице https://discord.com/developers/applications, необходимый для
