@@ -29,7 +29,8 @@ environment_type = environ['WORMHOLE_ENVIRONMENT'].lower()
 assert environment_type in ['test', 'prod'], f"Wrong environment type: {environment_type}, must be 'test' or 'prod'"
 
 # Имя файла база данных
-db_file_name = 'Wormhole.sqlite'
+# Wormhole.sqlite
+db_file_name = environ['WORMHOLE_SQLITE_PATH']
 
 # Список пользователей по ID которым будут выданы разрешения владельца
 # Список даёт возможность использовать команды модерации
@@ -42,7 +43,7 @@ additional_owners: list = [
 
 # ------------- ФИЛЬТР СООБЩЕНИЙ
 # Промежуток времени в секундах, в которое можно отправить одно сообщение:
-cooldown = int(environ['FILTER_COOLDOWN'])
+cooldown = int(environ['WORMHOLE_FILTER_COOLDOWN'])
 
 # Минимальное количество символов в сообщение разрешённое к отправке в глоалбный канал
 shortmessages = 3
